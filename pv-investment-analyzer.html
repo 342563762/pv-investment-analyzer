@@ -1114,8 +1114,8 @@ function npvCF(r,cfs){var s=0,rv=1+r;for(var t=0;t<cfs.length;t++) s+=cfs[t]/Mat
 function dNpvCF(r,cfs){var s=0,rv=1+r;for(var t=1;t<cfs.length;t++) s-=t*cfs[t]/Math.pow(rv,t+1); return s;}
 function npvCFSafe(r,cfs){try{return npvCF(r,cfs);}catch(e){return NaN;}}
 function calcNPV(cfs,w){return npvCF(w||0.035,cfs);}
-function calcPBstatic(cfs){var c=0;for(var t=0;t<cfs.length;t++){c+=cfs[t];if(c>=0)return t;} return cfs.length;}
-function calcPBdynamic(cfs,w){var c=0,rv=(w||0.035)+1;for(var t=0;t<cfs.length;t++){c+=cfs[t]/Math.pow(rv,t);if(c>=0)return t;} return cfs.length;}
+function calcPBstatic(cfs){var c=0,prevC=0;for(var t=0;t<cfs.length;t++){prevC=c;c+=cfs[t];if(c>=0){var cf=(cfs[t]!==0)?cfs[t]:1;return Math.max(0,t-1)+Math.abs(prevC)/cf;}} return cfs.length;}
+function calcPBdynamic(cfs,w){var c=0,prevC=0,rv=(w||0.035)+1;for(var t=0;t<cfs.length;t++){prevC=c;c+=cfs[t]/Math.pow(rv,t);if(c>=0){var cf=((cfs[t]/Math.pow(rv,t))!==0)?(cfs[t]/Math.pow(rv,t)):1;return Math.max(0,t-1)+Math.abs(prevC)/cf;}} return cfs.length;}
 function calcPI(npv,inv){return(inv===0)?0:(npv+inv)/inv;}
 
 function calcLCOE(res) {
