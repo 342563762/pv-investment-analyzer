@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>光伏投资分析测算模型 v7.5</title>
+<title>光伏投资分析测算模型 v7.11</title>
 <style>
 /* ============================================
    Vercel Design System × Bloomberg Dark Theme
@@ -281,8 +281,66 @@ select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns=
 @media (max-width:1100px) { .kpi-grid { grid-template-columns:repeat(2, 1fr); } }
 @media (max-width:700px) { .kpi-grid { grid-template-columns:1fr 1fr; } .indicator-grid { grid-template-columns:1fr; } }
 
+/* History Panel */
+.history-toggle {
+  position:fixed; top:16px; right:16px; z-index:200;
+  background:var(--bg-card); border:1px solid rgba(255,255,255,0.08);
+  color:var(--text-secondary); font-size:12px; padding:8px 14px;
+  border-radius:var(--radius-md); cursor:pointer; display:flex; align-items:center; gap:6px;
+  transition:all 0.2s; box-shadow:var(--card-shadow);
+}
+.history-toggle:hover { background:var(--bg-card-hover); color:var(--accent-cyan); border-color:var(--accent-cyan); }
+.history-toggle .badge { background:var(--accent-blue); color:#fff; font-size:10px;
+  padding:1px 6px; border-radius:99px; font-weight:600; }
+.history-drawer {
+  position:fixed; top:0; right:-420px; width:400px; height:100vh; z-index:300;
+  background:var(--bg-secondary); border-left:1px solid rgba(255,255,255,0.06);
+  transition:right 0.3s cubic-bezier(0.4,0,0.2,1); display:flex; flex-direction:column;
+  box-shadow:-8px 0 32px rgba(0,0,0,0.4);
+}
+.history-drawer.open { right:0; }
+.drawer-header { padding:18px 20px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.drawer-header h3 { font-size:15px; font-weight:600; }
+.drawer-close { background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer; padding:4px 8px; line-height:1; }
+.drawer-close:hover { color:var(--accent-red); }
+.drawer-body { flex:1; overflow-y:auto; padding:12px 16px; }
+.drawer-footer { padding:14px 20px; border-top:1px solid rgba(255,255,255,0.06); display:flex; gap:8px; flex-shrink:0; }
+.btn-drawer { flex:1; padding:9px 14px; border-radius:var(--radius-sm); font-size:12px; font-weight:500; cursor:pointer; transition:all 0.15s; border:1px solid transparent; }
+.btn-clear { background:rgba(248,81,73,0.1); color:var(--accent-red); border-color:rgba(248,81,73,0.2); }
+.btn-clear:hover { background:rgba(248,81,73,0.2); }
+.btn-export { background:rgba(88,166,255,0.1); color:var(--accent-blue); border-color:rgba(88,166,255,0.2); }
+.btn-export:hover { background:rgba(88,166,255,0.2); }
+
+.history-item {
+  background:var(--bg-card); border-radius:var(--radius-md); padding:14px 16px;
+  margin-bottom:10px; border:1px solid rgba(255,255,255,0.04); transition:all 0.15s;
+  cursor:pointer; position:relative;
+}
+.history-item:hover { border-color:rgba(88,166,255,0.3); transform:translateX(-2px); }
+.history-item .item-name { font-size:13px; font-weight:600; margin-bottom:6px; color:var(--text-primary); }
+.history-item .item-meta { font-size:11px; color:var(--text-muted); display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
+.history-item .item-kpis { display:flex; gap:10px; flex-wrap:wrap; }
+.history-item .kpi-tag { font-size:11px; padding:2px 8px; border-radius:4px; font-family:var(--font-mono); font-weight:500; }
+.kpi-tag.irr { background:rgba(63,185,80,0.12); color:var(--accent-green); }
+.kpi-tag.npv { background:rgba(88,166,255,0.12); color:var(--accent-blue); }
+.kpi-tag.pb { background:rgba(163,113,247,0.12); color:var(--accent-purple); }
+.item-delete {
+  position:absolute; top:10px; right:10px; background:none; border:none;
+  color:var(--text-muted); font-size:14px; cursor:pointer; opacity:0; transition:opacity 0.15s; padding:2px 4px; line-height:1;
+}
+.history-item:hover .item-delete { opacity:1; }
+.item-delete:hover { color:var(--accent-red); }
+
+.history-empty { text-align:center; padding:60px 20px; color:var(--text-muted); }
+.history-empty .icon { font-size:48px; margin-bottom:12px; opacity:0.5; }
+.history-empty p { font-size:13px; }
+
+.history-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:250;
+  opacity:0; pointer-events:none; transition:opacity 0.3s; }
+.history-overlay.show { opacity:1; pointer-events:auto; }
+
 /* Print */
-@media (print { body { background:#fff; color:#000; } .panel { display:none; } .result-panel { width:100% !important; } }
+@media print { body { background:#fff; color:#000; } .panel { display:none; } .result-panel { width:100% !important; } .history-toggle,.history-drawer,.history-overlay { display:none !important; } }
 </style>
 </head>
 <body>
@@ -293,7 +351,7 @@ select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns=
     <div class="header-title">
       <span class="icon">⚡</span>
       <h1>光伏投资分析测算模型</h1>
-      <span class="version">v7.4</span>
+      <span class="version">v7.11</span>
     </div>
     <div class="header-right">
       <span>单文件 · 纯前端 · 零依赖</span>
@@ -1190,12 +1248,168 @@ function runCalculation() {
       renderKPIs(ind); renderIndicators(ind,p); renderParams(res);
       renderSensitivity(sens); renderCashFlow(res); renderTaxSummary(res);
       _('emptyState').style.display='none'; _('resultsContainer').style.display='';
+      // 自动保存到历史记录
+      saveCurrentRecord(p, ind);
     } catch(e) { console.error('Calc error:',e); alert('\u8BA1\u7B97\u51FA\u9519\uFF1A'+e.message); }
     showLoading(false);
   }, 150);
 }
 
 function showLoading(on) { _('loadingOverlay').classList.toggle('show',on); }
+
+// ============ 历史记录功能 (localStorage) ============
+var HISTORY_KEY = 'pv_investment_records';
+var MAX_RECORDS = 50;
+
+function getHistoryRecords() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveHistoryRecords(records) { localStorage.setItem(HISTORY_KEY, JSON.stringify(records)); }
+function updateHistoryBadge() { var r = getHistoryRecords(); _('historyCount').textContent = r.length; }
+
+function saveCurrentRecord(params, indicators) {
+  var records = getHistoryRecords();
+  var record = {
+    id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
+    name: (params.projectName || '未命名') + ' — ' + new Date().toLocaleString('zh-CN'),
+    savedAt: new Date().toISOString(),
+    params: params,
+    summary: {
+      capacity: params.capacity,
+      totalInvest: params.totalInvest || (params.costEquipment + params.costConstruction + params.costDesign),
+      gridMode: params.gridMode,
+      wacc: params.wacc,
+      irr: indicators.irrAT_t,
+      npv: indicators.npvAT_t,
+      pbStatic: indicators.pbAT_t,
+      pbDynamic: indicators.pbDT_t
+    }
+  };
+  records.unshift(record);
+  if (records.length > MAX_RECORDS) records = records.slice(0, MAX_RECORDS);
+  saveHistoryRecords(records);
+  updateHistoryBadge();
+}
+
+function renderHistoryList() {
+  var records = getHistoryRecords();
+  var container = _('historyListContainer');
+  updateHistoryBadge();
+  if (!records || records.length === 0) {
+    container.innerHTML = '<div class="history-empty"><div class="icon">📋</div><p>暂无测算历史记录</p><p style="font-size:11px;margin-top:4px">每次点击「开始测算分析」后会自动保存</p></div>';
+    return;
+  }
+  var html = '';
+  records.forEach(function(rec) {
+    var irrVal = rec.summary.irr != null ? (rec.summary.irr * 100).toFixed(2) + '%' : '—';
+    var npvVal = rec.summary.npv != null ? fmtN(rec.summary.npv) : '—';
+    var pbS = rec.summary.pbStatic != null ? rec.summary.pbStatic.toFixed(2) : '—';
+    var pbD = rec.summary.pbDynamic != null ? rec.summary.pbDynamic.toFixed(2) : '—';
+    var dateStr = new Date(rec.savedAt).toLocaleString('zh-CN', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+    var modeMap = {'fullGrid':'全额上网','fullSelf':'全部自用','selfUse':'自发自用+余电上网'};
+    var modeLabel = modeMap[rec.summary.gridMode] || rec.summary.gridMode;
+    html += '<div class="history-item" onclick="applyRecord(\''+rec.id+'\')" title="点击恢复此参数">';
+    html += '<button class="item-delete" onclick="event.stopPropagation();deleteRecord(\''+rec.id+'\')" title="删除">🗑️</button>';
+    html += '<div class="item-name">'+escHtml(rec.name)+'</div>';
+    html += '<div class="item-meta"><span>📅 '+dateStr+'</span><span>⚡ '+rec.summary.capacity+'MW</span><span>🔌 '+modeLabel+'</span></div>';
+    html += '<div class="item-kpis">';
+    html += '<span class="kpi-tag irr">IRR '+irrVal+'</span>';
+    html += '<span class="kpi-tag npv">NPV '+npvVal+'万</span>';
+    html += '<span class="kpi-tag pb">静态 '+pbS+'年</span>';
+    html += '<span class="kpi-tag pb">动态 '+pbD+'年</span>';
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function escHtml(s) { var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function toggleHistoryDrawer() {
+  var drawer = _('historyDrawer'), overlay = _('historyOverlay');
+  var isOpen = drawer.classList.contains('open');
+  if (!isOpen) { renderHistoryList(); drawer.classList.add('open'); overlay.classList.add('show'); }
+  else { closeHistoryDrawer(); }
+}
+function closeHistoryDrawer() {
+  _('historyDrawer').classList.remove('open');
+  _('historyOverlay').classList.remove('show');
+}
+
+function deleteRecord(id) {
+  if (!confirm('确定删除这条测算记录吗？')) return;
+  var records = getHistoryRecords().filter(function(r){return r.id !== id;});
+  saveHistoryRecords(records);
+  renderHistoryList();
+}
+
+function clearAllHistory() {
+  if (!confirm('确定清空所有测算历史记录吗？此操作不可恢复！')) return;
+  saveHistoryRecords([]);
+  renderHistoryList();
+}
+
+function applyRecord(id) {
+  var records = getHistoryRecords();
+  var rec = records.find(function(r){return r.id === id;});
+  if (!rec) { alert('未找到该记录'); return; }
+  var p = rec.params;
+  // 恢复基础参数
+  setVal('projectName', p.projectName||'');
+  setVal('capacity', p.capacity||'');
+  setVal('unitCost', p.unitCost||'');
+  setVal('firstYearHours', p.firstYearHours||'');
+  setVal('degradRate', p.degradRate||'');
+  setVal('projectLife', p.projectLife||'');
+  setVal('constructionPeriod', p.constructionPeriod||'');
+  setVal('waccRate', (p.wacc*100)||'3.5');
+  // 并网方式
+  var gms = document.querySelectorAll('input[name="gridMode"]');
+  for(var gi=0;gi<gms.length;gi++){if(gms[gi].value===p.gridMode){gms[gi].checked=true;break;}}
+  syncGridModeUI();
+  // 电价
+  setVal('gridPrice', p.gridPrice||'');
+  setVal('selfPrice', p.selfPrice||'');
+  setVal('fullSelfPrice', p.fullSelfPrice||'');
+  setVal('gridPriceSelfUse', p.gridPriceSelfUse||'');
+  setVal('selfRatio', (p.selfRatio*100)||'');
+  // 总投资
+  var ims = document.querySelectorAll('input[name="investMode"]');
+  for(var imi=0;imi<ims.length;imi++){if(ims[imi].value===p.investMode){ims[imi].checked=true;break;}}
+  syncInvestMode();
+  setVal('costEquipment', p.costEquipment||'');
+  setVal('costConstruction', p.costConstruction||'');
+  setVal('costDesign', p.costDesign||'');
+  setVal('totalInvestDirect', p.totalInvestDirect||'');
+  updateCostTableTotal();
+  // 运维成本
+  setVal('baseOPEX', p.baseOPEX||'');
+  setVal('rentEnabled', false); // 复杂状态暂不完整恢复
+  setVal('rentUnitPrice', p.rentUnitPrice||'');
+  setVal('roofArea', p.roofArea||'');
+  // 融资
+  setVal('loanEnabled', false);
+  setVal('loanRatio', (p.loanRatio*100)||'');
+  setVal('loanRate', (p.loanRate*100)||'');
+  setVal('loanYears', p.loanYears||'');
+  // 税务
+  setVal('vatRate', (p.vatRate*100)||'');
+  setVal('vatRefundEnabled', false);
+  setVal('corpTaxRate', (p.corpTaxRate*100)||'');
+  setVal('taxHolidayEnabled', false);
+  closeHistoryDrawer();
+  alert('已恢复「'+rec.name+'」的参数，请点击「开始测算分析」查看结果');
+}
+
+function exportHistoryJSON() {
+  var records = getHistoryRecords();
+  if (!records.length) { alert('没有可导出的记录'); return; }
+  var blob = new Blob([JSON.stringify(records,null,2)],{type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a'); a.href=url; a.download='pv_history_'+new Date().toISOString().slice(0,10)+'.json'; a.click(); URL.revokeObjectURL(url);
+}
+
+// 初始化历史记录徽章
+updateHistoryBadge();
 
 // ============ 渲染函数 ============
 function fmtN(n,d){if(n==null)return'\u2014';if(d==null)d=2;var s=Math.abs(n).toFixed(d);return n<0?'-'+s:s;}
@@ -1454,6 +1668,28 @@ function bindInput(id, fn) {
 
 <!-- Chart.js CDN (only external dependency) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<!-- History Toggle Button -->
+<button class="history-toggle" onclick="toggleHistoryDrawer()">
+  <span>📂</span> 历史记录
+  <span class="badge" id="historyCount">0</span>
+</button>
+
+<!-- History Drawer -->
+<div class="history-overlay" id="historyOverlay" onclick="closeHistoryDrawer()"></div>
+<aside class="history-drawer" id="historyDrawer">
+  <div class="drawer-header">
+    <h3><span style="margin-right:6px">📂</span> 测算历史记录</h3>
+    <button class="drawer-close" onclick="closeHistoryDrawer()">✕</button>
+  </div>
+  <div class="drawer-body" id="historyListContainer">
+    <!-- 动态渲染 -->
+  </div>
+  <div class="drawer-footer">
+    <button class="btn-drawer btn-export" onclick="exportHistoryJSON()">📥 导出 JSON</button>
+    <button class="btn-drawer btn-clear" onclick="clearAllHistory()">🗑️ 清空全部</button>
+  </div>
+</aside>
 
 </body>
 </html>
