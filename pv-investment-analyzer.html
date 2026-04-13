@@ -334,6 +334,10 @@ select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns=
         <div class="form-group"><label>装机容量<span class="unit">MW</span></label><input type="number" class="input-num" id="capacity" value="10" step="0.1"></div>
         <div class="form-group"><label>运营年限<span class="unit">年</span></label><input type="number" class="input-num" id="projectLife" value="20" min="1" max="30"></div>
       </div>
+      <div class="form-row">
+        <div class="form-group"><label>折现率（WACC）<span class="unit">%</span></label><input type="number" class="input-num" id="waccRate" value="3.5" step="0.1" min="0" max="30"></div>
+        <div class="form-group" style="flex:2;"><label style="font-size:12px;color:var(--text-muted);">💡 用于 NPV、动态回收期、LCOE 等指标计算，建议 3%~8%</label></div>
+      </div>
     </div>
 
     <!-- Grid Mode -->
@@ -836,7 +840,7 @@ function applyPreset(name, btnEl) {
       setVal('gridPriceSelfUse',0.45); setVal('selfPrice',0.85); setVal('selfRatio',80);
       setVal('firstYearHours',1100); setVal('degradationRate',0.5);
       setRadio('investMode','perMW'); setVal('unitCost',380);
-      setVal('baseOPEX',30);
+      setVal('baseOPEX',30); setVal('waccRate',3.5);
       setCheck('rentEnabled',true); setVal('roofArea',50000); setVal('rentUnitPrice',2);
       setRadio('rentMode','area');
       setCheck('landTaxEnabled',true); setVal('landArea',300); setVal('landTaxRate',6);
@@ -851,7 +855,7 @@ function applyPreset(name, btnEl) {
       setVal('projectLife',25); setRadio('gridMode','fullGrid'); setVal('gridPrice',0.42);
       setVal('firstYearHours',1050); setVal('degradationRate',0.5);
       setRadio('investMode','perMW'); setVal('unitCost',340);
-      setVal('baseOPEX',108);
+      setVal('baseOPEX',108); setVal('waccRate',3.5);
       setCheck('rentEnabled',false);
       setCheck('landTaxEnabled',true); setVal('landArea',270); setVal('landTaxRate',6);
       setCheck('mgmtFeeEnabled',false);
@@ -865,7 +869,7 @@ function applyPreset(name, btnEl) {
       setVal('projectLife',20); setRadio('gridMode','fullGrid'); setVal('gridPrice',0.45);
       setVal('firstYearHours',1100); setVal('degradationRate',0.5);
       setRadio('investMode','perMW'); setVal('unitCost',350);
-      setVal('baseOPEX',30);
+      setVal('baseOPEX',30); setVal('waccRate',3.5);
       setCheck('rentEnabled',false); setCheck('landTaxEnabled',false); setCheck('mgmtFeeEnabled',false);
       setVal('equityRatio',30); setVal('loanRate',4.35); setVal('loanYears',15);
       _('repayMethod').value='equalPayment';
@@ -946,7 +950,8 @@ function getInputs() {
     vatRebatePolicy: _('vatRebate').value,
     surtaxRate: f(_('surtaxRate').value)/100,
     depYears: i(_('depYears').value),
-    residualRate: f(_('residualRate').value)/100
+    residualRate: f(_('residualRate').value)/100,
+    wacc: f(_('waccRate').value)/100
   };
 }
 
@@ -1087,7 +1092,7 @@ function calculate(p) {
 
   return {
     params:p, totalInvest:totalInvest, loanAmount:loanAmount, equityAmount:equityAmount,
-    annualDep:annualDep, years:years, N:N, wacc:0.07
+    annualDep:annualDep, years:years, N:N, wacc:p.wacc
   };
 }
 
@@ -1108,9 +1113,9 @@ function calcIRR(cfs) {
 function npvCF(r,cfs){var s=0,rv=1+r;for(var t=0;t<cfs.length;t++) s+=cfs[t]/Math.pow(rv,t); return s;}
 function dNpvCF(r,cfs){var s=0,rv=1+r;for(var t=1;t<cfs.length;t++) s-=t*cfs[t]/Math.pow(rv,t+1); return s;}
 function npvCFSafe(r,cfs){try{return npvCF(r,cfs);}catch(e){return NaN;}}
-function calcNPV(cfs,w){return npvCF(w||0.07,cfs);}
+function calcNPV(cfs,w){return npvCF(w||0.035,cfs);}
 function calcPBstatic(cfs){var c=0;for(var t=0;t<cfs.length;t++){c+=cfs[t];if(c>=0)return t;} return cfs.length;}
-function calcPBdynamic(cfs,w){var c=0,rv=w||0.07;for(var t=0;t<cfs.length;t++){c+=cfs[t]/Math.pow(rv,t);if(c>=0)return t;} return cfs.length;}
+function calcPBdynamic(cfs,w){var c=0,rv=(w||0.035)+1;for(var t=0;t<cfs.length;t++){c+=cfs[t]/Math.pow(rv,t);if(c>=0)return t;} return cfs.length;}
 function calcPI(npv,inv){return(inv===0)?0:(npv+inv)/inv;}
 
 function calcLCOE(res) {
@@ -1139,7 +1144,9 @@ function computeAllIndicators(res) {
     npvPT_t:calcNPV(PT_t,res.wacc), npvAT_t:calcNPV(AT_t,res.wacc),
     npvPT_e:calcNPV(PT_e,res.wacc), npvAT_e:calcNPV(AT_e,res.wacc),
     pbST_t:calcPBstatic(PT_t), pbAT_t:calcPBstatic(AT_t),
-    pbDT_t:calcPBdynamic(AT_t,res.wacc), pbST_e:calcPBstatic(PT_e),
+    pbDT_PT:calcPBdynamic(PT_t,res.wacc), pbDT_AT:calcPBdynamic(AT_t,res.wacc),
+    pbDT_eq:calcPBdynamic(AT_e,res.wacc),
+    pbST_e:calcPBstatic(PT_e),
     piPT:calcPI(calcNPV(PT_t,res.wacc),res.totalInvest),
     piAT:calcPI(calcNPV(AT_t,res.wacc),res.totalInvest),
     lcoe:lcoe,
@@ -1203,14 +1210,14 @@ function renderKPIs(ind) {
   var npvv = ind.npvAT_t;
   _('kpiNpv').textContent = (npvv != null) ? fmtN(npvv) : '\u2014';
   _('kpiNpv').className = 'kpi-value '+clsV(npvv,'positive','negative','neutral');
-  _('kpiNpvHint').textContent = 'WACC='+((ind.raw)?fmtP(ind.raw.wacc):'7%');
+  _('kpiNpvHint').textContent = 'WACC='+((ind.raw)?fmtP(ind.raw.wacc):'3.5%');
   var lv = ind.lcoe;
   _('kpiLcoe').textContent = (lv != null) ? fmtN(lv,3) : '\u2014';
   _('kpiLcoe').className = 'kpi-value neutral';
-  var pb = ind.pbDT_t, mx = ind.raw?ind.raw.N:20;
-  _('kpiPayback').textContent = (pb&&pb<=mx)?pb.toFixed(1)+' \u5E74':'> '+mx+' \u5E74';
+  var pb = ind.pbDT_AT, mx = ind.raw?ind.raw.N:20;
+  _('kpiPayback').textContent = (pb&&pb<=mx)?pb.toFixed(2)+' \u5E74':'> '+mx+' \u5E74';
   _('kpiPayback').className = 'kpi-value '+clsV(pb&&pb<=mx,null,'negative','neutral');
-  _('kpiPaybackHint').textContent = '\u9759\u6001 '+((ind.pbAT_t&&ind.pbAT_t<=mx)?ind.pbAT_t.toFixed(1):'>'+mx);
+  _('kpiPaybackHint').textContent = '\u9759\u6001 '+((ind.pbAT_t&&ind.pbAT_t<=mx)?ind.pbAT_t.toFixed(2):'>'+mx);
 }
 
 function renderIndicators(ind,p) {
@@ -1219,14 +1226,14 @@ function renderIndicators(ind,p) {
     ['\u5168\u6295\u8D44 IRR',ind.irrPT_t,ind.irrAT_t,true],
     ['\u5168\u6295\u8D44 NPV(\u4E07\u5143)',ind.npvPT_t,ind.npvAT_t],
     ['\u9759\u6001\u56DE\u6536\u671F(\u5E74)',ind.pbST_t,ind.pbAT_t,false,true],
-    ['\u52A8\u6001\u56DE\u6536\u671F(\u5E74)',null,ind.pbDT_t,false,true],
+    ['\u52A8\u6001\u56DE\u6536\u671F(\u5E74)',ind.pbDT_PT,ind.pbDT_AT,false,true],
     ['\u76C8\u5229\u6307\u6570 PI',ind.piPT,ind.piAT]
   ];
   rs.forEach(function(r){
     var ip=r[3],iy=r[4];
     h1+='<tr><td class="label-cell">'+r[0]+'</td>';
-    h1+='<td class="num">'+(ip?((r[1]!=null)?fmtP(r[1]):'\u2014'):iy?(((r[1])&&(r[1]<=p.projectLife))?r[1].toFixed(1):'>'+p.projectLife):((r[1]!=null)?fmtN(r[1]):'\u2013'))+'</td>';
-    h1+='<td class="num">'+(ip?((r[2]!=null)?fmtP(r[2]):'\u2014'):iy?(((r[2])&&(r[2]<=p.projectLife))?r[2].toFixed(1):'>'+p.projectLife):((r[2]!=null)?fmtN(r[2]):'\u2013'))+'</td></tr>';
+    h1+='<td class="num">'+(ip?((r[1]!=null)?fmtP(r[1]):'\u2014'):iy?(((r[1])&&(r[1]<=p.projectLife))?r[1].toFixed(2):'>'+p.projectLife):((r[1]!=null)?fmtN(r[1]):'\u2013'))+'</td>';
+    h1+='<td class="num">'+(ip?((r[2]!=null)?fmtP(r[2]):'\u2014'):iy?(((r[2])&&(r[2]<=p.projectLife))?r[2].toFixed(2):'>'+p.projectLife):((r[2]!=null)?fmtN(r[2]):'\u2013'))+'</td></tr>';
   });
   h1+='<tr class="group-header"><td colspan="3">\u5176\u4ED6\u6307\u6807</td></tr>';
   h1+='<tr><td class="label-cell">\u9996\u5E74\u53D1\u7535\u6536\u5165(\u4E07\u5143)</td><td class="num" colspan="2">'+fmtN(ind.firstYearRevenue)+'</td></tr>';
@@ -1312,7 +1319,7 @@ function renderCashFlow(res) {
     '<th class="num">\u7D2F\u8BA1NPV<br/>(\u7A0E\u540E)</th></tr></thead><tbody>';
   var cnv=0,wv=res.wacc;
   for(var i=0;i<res.years.length;i++){
-    var y=res.years[i]; cnv+=y.cfAT_total/Math.pow(wv,i);
+    var y=res.years[i]; cnv+=y.cfAT_total/Math.pow(1+wv,i);
     var z=(i===0);
     html+='<tr'+(z?' class="highlight-row"':'')+'>';
     html+='<td class="label-cell">'+y.year+'</td>';
@@ -1331,7 +1338,7 @@ function renderCashFlow(res) {
 function renderTaxSummary(res) {
   var html='<thead><tr><th>\u5E74\u4EFD</th><th class="num">\u9500\u9879\u7A0E\u989D</th><th class="num">\u8FDB\u9879\u62B5\u6263</th><th class="num">\u5E94\u7EB3\u589E\u503C\u7A0E</th>'+
     '<th class="num">\u5373\u5F81\u5373\u9000</th><th class="num">\u589E\u503C\u7A0E\u51C0\u989D</th><th class="num">\u57CE\u5EFA\u7A0E\u53CA\u9644\u52A0</th>'+
-    '<th class="num">\u6240\u5F97\u7A0E</th><th class="num">\u6709\u6548\u7A0E\u7387</th><th class="num">\u62A4\u65E7</th></tr></thead><tbody>';
+    '<th class="num">\u6240\u5F97\u7A0E</th><th class="num">\u6709\u6548\u7A0E\u7387</th><th class="num">\u6298\u65E7</th></tr></thead><tbody>';
   for(var i=1;i<res.years.length;i++){
     var y=res.years[i]; var er=y.itCoeff*100;
     html+='<tr><td class="label-cell">\u7B2C'+y.year+'\u5E74'+(y.itCoeff<1?' \u2B50':'')+'</td>';
@@ -1363,7 +1370,7 @@ function exportWord() {
   hc+='<h3>1.1 \u5168\u6295\u8D44\u6307\u6807</h3><table><tr><th>\u6307\u6807</th><th class="center">\u7A0E\u524D</th><th class="center">\u7A0E\u540E</th></tr>';
   hc+='<tr><td>\u5168\u6295\u8D44 IRR</td><td class="center">'+((ind.irrPT_t!=null)?(ind.irrPT_t*100).toFixed(2)+'%':'\u2013')+'</td><td class="center">'+((ind.irrAT_t!=null)?(ind.irrAT_t*100).toFixed(2)+'%':'\u2013')+'</td></tr>';
   hc+='<tr><td>\u5168\u6295\u8D44 NPV(\u4E07\u5143)</td><td class="center">'+((ind.npvPT_t!=null)?ind.npvPT_t.toFixed(2):'\u2013')+'</td><td class="center">'+((ind.npvAT_t!=null)?ind.npvAT_t.toFixed(2):'\u2013')+'</td></tr>';
-  hc+='<tr><td>\u52A8\u6001\u56DE\u6536\u671F(\u5E74)</td><td class="center">\u2014</td><td class="center">'+((ind.pbDT_t&&ind.pbDT_t<=res.N)?ind.pbDT_t.toFixed(1):'>'+res.N)+'</td></tr>';
+  hc+='<tr><td>\u52A8\u6001\u56DE\u6536\u671F(\u5E74)</td><td class="center">'+((ind.pbDT_PT&&ind.pbDT_PT<=res.N)?ind.pbDT_PT.toFixed(2):'>'+res.N)+'</td><td class="center">'+((ind.pbDT_AT&&ind.pbDT_AT<=res.N)?ind.pbDT_AT.toFixed(2):'>'+res.N)+'</td></tr>';
   hc+='<tr><td>\u76C8\u5229\u6307\u6570 PI</td><td class="center">'+((ind.piPT!=null)?ind.piPT.toFixed(3):'\u2013')+'</td><td class="center">'+((ind.piAT!=null)?ind.piAT.toFixed(3):'\u2013')+'</td></tr></table>';
   hc+='<h3>1.2 \u8D44\u672C\u91D1\u6307\u6807</h3><table><tr><th>\u6307\u6807</th><th class="center">\u7A0E\u524D</th><th class="center">\u7A0E\u540E</th></tr>';
   hc+='<tr><td>\u8D44\u672C\u91D1 IRR</td><td class="center">'+((ind.irrPT_e!=null)?(ind.irrPT_e*100).toFixed(2)+'%':'\u2013')+'</td><td class="center">'+((ind.irrAT_e!=null)?(ind.irrAT_e*100).toFixed(2)+'%':'\u2013')+'</td></tr>';
