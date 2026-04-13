@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>光伏投资分析测算模型 v7.5</title>
+<style>
+/* ============================================
+   Vercel Design System × Bloomberg Dark Theme
+   ============================================ */
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: #1c2128;
+  --bg-card-hover: #22262e;
+  --bg-input: #0d1117;
+  --border-shadow: rgba(255,255,255,0.06) 0px 0px 0px 1px;
+  --card-shadow: rgba(255,255,255,0.04) 0px 0px 0px 1px, rgba(0,0,0,0.3) 0px 2px 8px, rgba(0,0,0,0.15) 0px 8px 24px -8px;
+  --card-hover-shadow: rgba(255,255,255,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.35) 0px 4px 16px, rgba(0,0,0,0.2) 0px 12px 32px -8px;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --accent-blue: #58a6ff;
+  --accent-green: #3fb950;
+  --accent-red: #f85149;
+  --accent-orange: #d29922;
+  --accent-purple: #a371f7;
+  --accent-cyan: #39d2c0;
+  --focus-ring: rgba(88,166,255,0.5);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  --font-mono: "SF Mono", "Cascadia Code", "Fira Code", "Consolas", monospace;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: var(--font-sans); background: var(--bg-primary); color: var(--text-primary);
+  font-size: 14px; line-height: 1.6; min-height: 100vh; -webkit-font-smoothing: antialiased;
+}
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #1a2332 0%, #0d1117 50%, #111820 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  padding: 16px 32px; position: sticky; top:0; z-index:100; backdrop-filter: blur(12px);
+}
+.header-inner { max-width:1600px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; }
+.header-title { display:flex; align-items:center; gap:12px; }
+.header-title .icon { font-size:28px; }
+.header-title h1 { font-size:20px; font-weight:600; letter-spacing:-0.5px; color:var(--text-primary); }
+.header-title .version {
+  font-size:11px; font-weight:500; color: var(--accent-cyan); background:rgba(57,210,192,0.1);
+  padding:2px 8px; border-radius:99px; letter-spacing:0;
+}
+.header-right { display:flex; align-items:center; gap:12px; font-size:12px; color:var(--text-muted); }
+
+/* Layout */
+.main-container { max-width:1600px; margin:0 auto; padding:24px; display:grid;
+  grid-template-columns:420px 1fr; gap:24px; min-height: calc(100vh - 70px); }
+@media (max-width:1100px) {
+  .main-container { grid-template-columns:1fr; padding:16px; }
+}
+
+/* Panel Base */
+.panel { background:var(--bg-card); border-radius:var(--radius-lg); box-shadow:var(--card-shadow);
+  overflow:hidden; height:fit-content; position:sticky; top:94px; max-height:calc(100vh - 118px);
+  overflow-y:auto;
+}
+.panel-header { padding:18px 20px 14px; border-bottom:1px solid rgba(255,255,255,0.05); }
+.panel-title { font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted); }
+.result-panel { overflow:visible; position:relative; }
+
+/* Presets */
+.presets-area { padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.05); }
+.presets-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.preset-btns { display:flex; gap:8px; flex-wrap:wrap; }
+.preset-btn {
+  flex:1; min-width:110px; padding:9px 12px; border:none; border-radius:var(--radius-sm);
+  font-family:var(--font-sans); font-size:12px; font-weight:500; cursor:pointer;
+  transition:all 0.2s ease; text-align:center; position:relative; overflow:hidden;
+  background:rgba(255,255,255,0.03); color:var(--text-secondary);
+  box-shadow: var(--border-shadow);
+}
+.preset-btn:hover { background:rgba(88,166,255,0.08); color:var(--accent-blue); transform: translateY(-1px); }
+.preset-btn.active { background:rgba(88,166,255,0.12); color:var(--accent-blue); box-shadow: 0 0 0 1px rgba(88,166,255,0.3), inset 0 0 0 1px rgba(88,166,255,0.08); }
+.preset-btn span { display:block; font-size:10px; color:var(--text-muted); margin-top:2px; font-weight:400; }
+
+/* Tabs */
+.tabs-nav { display:flex; background:rgba(0,0,0,0.2); padding:2px; gap:2px; margin:12px 20px; border-radius:var(--radius-md); }
+.tab-btn {
+  flex:1; padding:8px 4px; border:none; background:transparent; color:var(--text-muted);
+  font-family:var(--font-sans); font-size:12px; font-weight:500; cursor:pointer; border-radius:var(--radius-sm);
+  transition:all 0.2s ease; text-align:center; white-space:nowrap;
+}
+.tab-btn:hover { color:var(--text-secondary); cursor:pointer; }
+.tab-btn.active { background:var(--bg-card); color:var(--accent-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.3); font-weight:600; }
+
+.tab-content { display:none; padding:16px 20px; animation:fadeIn 0.25s ease; }
+.tab-content.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+/* Form Groups */
+.form-section { margin-bottom:18px; }
+.form-section:last-child { margin-bottom:0; }
+.form-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;
+  color:var(--accent-blue); margin-bottom:10px; display:flex; align-items:center; gap:6px;
+}
+.form-label::before { content:''; width:3px; height:12px; background:var(--accent-blue); border-radius:2px; }
+.form-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.form-group { flex:1; }
+.form-group label { display:block; font-size:12px; color:var(--text-secondary); margin-bottom:4px; }
+.form-group label .unit { font-size:10px; color:var(--text-muted); margin-left:3px; }
+.input-text, .input-num, select {
+  width:100%; padding:8px 10px; background:var(--bg-input); border:none; border-radius:var(--radius-sm);
+  color:var(--text-primary); font-family:var(--font-sans); font-size:13px;
+  box-shadow: var(--border-shadow); outline:none; transition:box-shadow 0.2s, background 0.2s;
+}
+.input-text:focus, .input-num:focus, select:focus { box-shadow: 0 0 0 2px var(--focus-ring), var(--border-shadow); background:#0a0e13; }
+select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b949e'%3E%3Cpath d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 8px center; padding-right:24px; }
+
+/* Radio Group */
+.radio-group { display:flex; gap:8px; flex-wrap:wrap; }
+.radio-item { position:relative; }
+.radio-item input { position:absolute; opacity:0; width:0; height:0; }
+.radio-item label {
+  display:inline-block; padding:6px 12px; border-radius:var(--radius-sm); font-size:12px; font-weight:500;
+  cursor:pointer; transition:all 0.2s; background:rgba(255,255,255,0.03); color:var(--text-secondary);
+  box-shadow: var(--border-shadow); user-select:none;
+}
+.radio-item input:checked+label { background:rgba(88,166,255,0.12); color:var(--accent-blue); box-shadow: 0 0 0 1px rgba(88,166,255,0.25); }
+.radio-item label:hover { background:rgba(255,255,255,0.07); cursor:pointer; }
+
+/* Toggle Switch */
+.toggle-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03); }
+.toggle-row:last-child { border-bottom:none; }
+.toggle-info { flex:1; }
+.toggle-info .name { font-size:13px; color:var(--text-primary); }
+.toggle-info .desc { font-size:11px; color:var(--text-muted); }
+.toggle-switch { position:relative; width:40px; height:22px; }
+.toggle-switch input { opacity:0; width:0; height:0; }
+.toggle-slider { position:absolute; inset:0; background:rgba(255,255,255,0.1); border-radius:22px; cursor:pointer; transition:0.2s; }
+.toggle-slider::before { content:''; position:absolute; width:16px; height:16px; left:3px; top:3px;
+  background:#fff; border-radius:50%; transition:0.2s; }
+.toggle-switch input:checked+.toggle-slider { background:var(--accent-blue); }
+.toggle-switch input:checked+.toggle-slider::before { transform:translateX(18px); }
+
+/* Sub-form (conditional) - 使用 style.display 控制显隐 */
+.sub-form { margin-top:10px; padding:12px; background:rgba(0,0,0,0.2); border-radius:var(--radius-sm); border-left:2px solid var(--accent-purple); }
+.sub-form .form-row { margin-bottom:6px; }
+.sub-form .form-row:last-child { margin-bottom:0; }
+
+/* OPEX Summary Table */
+.opex-summary { margin-top:14px; border-radius:var(--radius-sm); overflow:hidden; border:1px solid rgba(255,255,255,0.06); }
+.opex-summary table { width:100%; border-collapse:collapse; font-size:12px; }
+.opex-summary th { background:rgba(0,0,0,0.3); padding:7px 10px; text-align:left; font-weight:600; color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; }
+.opex-summary td { padding:6px 10px; border-top:1px solid rgba(255,255,255,0.03); color:var(--text-secondary); }
+.opex-summary td.disabled { color:var(--text-muted); text-decoration:line-through; opacity:0.5; }
+.opex-summary tr.total td { background:rgba(88,166,255,0.06); color:var(--accent-blue); font-weight:600; border-top:1px solid rgba(88,166,255,0.2); }
+.opex-summary .num-cell { text-align:right; font-family:var(--font-mono); font-size:11px; }
+
+/* Calculate Button */
+.calc-btn-container { padding:16px 20px; border-top:1px solid rgba(255,255,255,0.05); }
+.calc-btn {
+  width:100%; padding:13px; border:none; border-radius:var(--radius-md);
+  font-family:var(--font-sans); font-size:14px; font-weight:600; cursor:pointer;
+  background:linear-gradient(135deg, #238636 0%, #1a7f37 100%);
+  color:#fff; letter-spacing:0.5px; transition:all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(35,134,54,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.calc-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(35,134,54,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+  background:linear-gradient(135deg, #2ea043 0%, #238636 100%); }
+.calc-btn:active { transform: translateY(0); }
+.calc-btn .btn-icon { font-size:18px; }
+
+/* ===== RIGHT PANEL - RESULTS ===== */
+
+/* KPI Cards Row */
+.kpi-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; margin-bottom:24px; }
+.kpi-card {
+  background:var(--bg-card); border-radius:var(--radius-lg); padding:20px;
+  box-shadow:var(--card-shadow); transition:all 0.25s ease; position:relative; overflow:hidden;
+}
+.kpi-card:hover { box-shadow:var(--card-hover-shadow); transform: translateY(-2px); }
+.kpi-card::after { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.kpi-card.irr::after { background:linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); }
+.kpi-card.npv::after { background:linear-gradient(90deg, var(--accent-green), var(--accent-cyan)); }
+.kpi-card.lcoe::after { background:linear-gradient(90deg, var(--accent-orange), var(--accent-red)); }
+.kpi-card.payback::after { background:linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); }
+.kpi-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin-bottom:8px; }
+.kpi-value { font-size:30px; font-weight:700; font-family:var(--font-mono); line-height:1.1; letter-spacing:-1px; }
+.kpi-value.positive { color: var(--accent-green); }
+.kpi-value.negative { color: var(--accent-red); }
+.kpi-value.neutral { color: var(--text-primary); }
+.kpi-hint { font-size:11px; color:var(--text-muted); margin-top:6px; }
+
+/* Result Sections */
+.section { background:var(--bg-card); border-radius:var(--radius-lg); box-shadow:var(--card-shadow); margin-bottom:20px; overflow:hidden; }
+.section-header { padding:16px 20px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between; }
+.section-title { font-size:15px; font-weight:600; display:flex; align-items:center; gap:8px; letter-spacing:-0.3px; }
+.section-title .emoji { font-size:18px; }
+.section-body { padding:16px 20px; }
+
+/* Data Tables */
+.data-table-wrapper { overflow-x:auto; border-radius:var(--radius-sm); }
+.data-table { width:100%; border-collapse:collapse; font-size:12px; }
+.data-table thead th {
+  background:rgba(0,0,0,0.35); padding:10px 12px; text-align:left; font-weight:600;
+  color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.5px;
+  white-space:nowrap; position:sticky; top:0; border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.data-table tbody td {
+  padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.02); color:var(--text-secondary);
+}
+.data-table tbody tr:hover { background:rgba(255,255,255,0.02); }
+.data-table tbody tr:last-child td { border-bottom:none; }
+.data-table .num { text-align:right; font-family:var(--font-mono); font-size:11px; }
+.data-table .highlight-row { background:rgba(88,166,255,0.04); }
+.data-table .highlight-row td { color:var(--text-primary); font-weight:500; }
+.data-table .label-cell { color:var(--text-primary); font-weight:500; white-space:nowrap; min-width:180px; }
+.data-table .sub-label { color:var(--text-muted); padding-left:16px; font-size:11px; }
+.data-table .group-header td { background:rgba(88,166,255,0.06); color:var(--accent-blue); font-weight:600; font-size:11px;
+  text-transform:uppercase; letter-spacing:0.5px; padding:8px 12px; border-bottom:1px solid rgba(88,166,255,0.12); }
+.positive-val { color: var(--accent-green) !important; font-weight:600; }
+.negative-val { color: var(--accent-red) !important; }
+
+/* Two-column indicator table for pre-tax / after-tax comparison */
+.indicator-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.indicator-col h4 { font-size:12px; font-weight:600; color:var(--accent-cyan); margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid rgba(57,210,192,0.2); }
+
+/* Sensitivity Analysis */
+.sensitivity-chart-container { height:340px; position:relative; margin-bottom:16px; }
+.sensitivity-table-wrap { margin-top:12px; }
+.sensitivity-table { font-size:11px; }
+.sensitivity-table th { background:rgba(0,0,0,0.3); padding:6px 8px; font-size:10px; }
+.sensitivity-table td { padding:5px 8px; }
+
+/* Cash Flow Table */
+.cf-table { font-size:11px; }
+.cf-table th { font-size:10px; padding:7px 8px; }
+.cf-table td { padding:5px 8px; }
+
+/* Export Button */
+.export-container { padding:20px; text-align:center; }
+.export-btn {
+  display:inline-flex; align-items:center; gap:8px; padding:12px 32px; border:none; border-radius:var(--radius-md);
+  font-family:var(--font-sans); font-size:14px; font-weight:600; cursor:pointer;
+  background:linear-gradient(135deg, var(--accent-blue) 0%, #1f6feb 100%);
+  color:#fff; transition:all 0.25s ease; letter-spacing:0.3px;
+  box-shadow: 0 2px 12px rgba(88,166,255,0.25);
+}
+.export-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(88,166,255,0.35); }
+
+/* Empty State */
+.empty-state { text-align:center; padding:80px 20px; color:var(--text-muted); }
+.empty-state .icon { font-size:48px; margin-bottom:16px; opacity:0.5; }
+.empty-state p { font-size:14px; margin-bottom:6px; }
+.empty-state .hint { font-size:12px; color:var(--text-muted); }
+
+/* Loading */
+.loading-overlay { display:none; position:absolute; inset:0; background:rgba(13,17,23,0.85); backdrop-filter:blur(4px);
+  z-index:50; align-items:center; justify-content:center; border-radius:var(--radius-lg); }
+.loading-overlay.show { display:flex; }
+.spinner { width:40px; height:40px; border:3px solid rgba(88,166,255,0.15); border-top-color:var(--accent-blue);
+  border-radius:50%; animation:spin 0.7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* Badge */
+.badge { display:inline-block; padding:2px 8px; border-radius:99px; font-size:10px; font-weight:600; letter-spacing:0.3px; }
+.badge-blue { background:rgba(88,166,255,0.12); color:var(--accent-blue); }
+.badge-green { background:rgba(63,185,80,0.12); color:var(--accent-green); }
+.badge-red { background:rgba(248,81,73,0.12); color:var(--accent-red); }
+.badge-orange { background:rgba(210,153,34,0.12); color:var(--accent-orange); }
+
+/* Responsive */
+@media (max-width:1100px) { .kpi-grid { grid-template-columns:repeat(2, 1fr); } }
+@media (max-width:700px) { .kpi-grid { grid-template-columns:1fr 1fr; } .indicator-grid { grid-template-columns:1fr; } }
+
+/* Print */
+@media (print { body { background:#fff; color:#000; } .panel { display:none; } .result-panel { width:100% !important; } }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-title">
+      <span class="icon">⚡</span>
+      <h1>光伏投资分析测算模型</h1>
+      <span class="version">v7.4</span>
+    </div>
+    <div class="header-right">
+      <span>单文件 · 纯前端 · 零依赖</span>
+    </div>
+  </div>
+</header>
+
+<div class="main-container">
+
+<!-- ==================== LEFT PANEL ==================== -->
+<aside class="panel" id="leftPanel">
+
+  <!-- Preset Buttons -->
+  <div class="presets-area">
+    <div class="presets-label">📋 快速填充预设方案</div>
+    <div class="preset-btns">
+      <button class="preset-btn" onclick="applyPreset('ruinen',this)"><strong>睿恩分布式</strong><span>5MW 自发自用</span></button>
+      <button class="preset-btn" onclick="applyPreset('xixiasha',this)"><strong>西夏墅集中式</strong><span>18MW 全额上网</span></button>
+      <button class="preset-btn" onclick="applyPreset('generic',this)"><strong>通用工商业</strong><span>10MW 模板</span></button>
+    </div>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <nav class="tabs-nav">
+    <button class="tab-btn active" id="btn-tab-basic" onclick="switchTab('tab-basic','btn-tab-basic')">基础参数</button>
+    <button class="tab-btn" id="btn-tab-opex" onclick="switchTab('tab-opex','btn-tab-opex')">运营成本</button>
+    <button class="tab-btn" id="btn-tab-finance" onclick="switchTab('tab-finance','btn-tab-finance')">融资方案</button>
+    <button class="tab-btn" id="btn-tab-tax" onclick="switchTab('tab-tax','btn-tab-tax')">税务政策</button>
+  </nav>
+
+  <!-- Tab 1: Basic Parameters -->
+  <div class="tab-content active" id="tab-basic" style="display:block;">
+    <!-- Project Info -->
+    <div class="form-section">
+      <div class="form-label">项目基本信息</div>
+      <div class="form-row">
+        <div class="form-group"><label>项目名称</label><input type="text" class="input-text" id="projectName" value="光伏发电项目"></div>
+        <div class="form-group"><label>装机容量<span class="unit">MW</span></label><input type="number" class="input-num" id="capacity" value="10" step="0.1"></div>
+        <div class="form-group"><label>运营年限<span class="unit">年</span></label><input type="number" class="input-num" id="projectLife" value="20" min="1" max="30"></div>
+      </div>
+    </div>
+
+    <!-- Grid Mode -->
+    <div class="form-section">
+      <div class="form-label">并网方式</div>
+      <div class="radio-group" id="gridModeGroup">
+        <div class="radio-item"><input type="radio" name="gridMode" value="fullGrid" id="gmFullGrid" onchange="syncGridModeUI()"><label for="gmFullGrid">全额上网</label></div>
+        <div class="radio-item"><input type="radio" name="gridMode" value="selfUse" id="gmSelfUse" checked onchange="syncGridModeUI()"><label for="gmSelfUse">自发自用+余电上网</label></div>
+        <div class="radio-item"><input type="radio" name="gridMode" value="fullSelf" id="gmFullSelf" onchange="syncGridModeUI()"><label for="gmFullSelf">全部自用</label></div>
+      </div>
+
+      <!-- Full Grid Price: 仅显示上网电价 -->
+      <div class="sub-form" id="priceFullGrid" style="display:none;">
+        <div class="form-row"><div class="form-group"><label>上网电价（含税）<span class="unit">元/kWh</span></label><input type="number" class="input-num" id="gridPrice" value="0.45" step="0.01"></div></div>
+      </div>
+
+      <!-- Self Use + Surplus Price: 余电上网电价 + 消纳电价 + 消纳比例 -->
+      <div class="sub-form" id="priceSelfUse" style="display:block;">
+        <div class="form-row">
+          <div class="form-group"><label>余电上网电价（含税）<span class="unit">元/kWh</span></label><input type="number" class="input-num" id="gridPriceSelfUse" value="0.45" step="0.01"></div>
+          <div class="form-group"><label>消纳电价（自用电价）<span class="unit">元/kWh</span></label><input type="number" class="input-num" id="selfPrice" value="0.85" step="0.01"></div>
+          <div class="form-group"><label>消纳比例<span class="unit">%</span></label><input type="number" class="input-num" id="selfRatio" value="80" min="0" max="100"></div>
+        </div>
+      </div>
+
+      <!-- Full Self Price: 仅显示消纳电价 -->
+      <div class="sub-form" id="priceFullSelf" style="display:none;">
+        <div class="form-row"><div class="form-group"><label>消纳电价（自用电价）<span class="unit">元/kWh</span></label><input type="number" class="input-num" id="fullSelfPrice" value="0.85" step="0.01"></div></div>
+      </div>
+    </div>
+
+    <!-- Tech Params -->
+    <div class="form-section">
+      <div class="form-label">技术参数</div>
+      <div class="form-row">
+        <div class="form-group"><label>首年利用小时数<span class="unit">h/年</span></label><input type="number" class="input-num" id="firstYearHours" value="1100" step="10"></div>
+        <div class="form-group"><label>年衰减率<span class="unit">%</span></label><input type="number" class="input-num" id="degradationRate" value="0.5" step="0.1"></div>
+      </div>
+    </div>
+
+    <!-- Investment Mode -->
+    <div class="form-section">
+      <div class="form-label">总投资</div>
+      <div class="radio-group" style="margin-bottom:10px;">
+        <div class="radio-item"><input type="radio" name="investMode" value="perMW" id="imPerMW" checked onchange="syncInvestMode()"><label for="imPerMW">单位造价×容量</label></div>
+        <div class="radio-item"><input type="radio" name="investMode" value="costTable" id="imCostTable" onchange="syncInvestMode()"><label for="imCostTable">项目成本表</label></div>
+      </div>
+      <div id="investPerMWForm" style="display:block;">
+        <div class="form-row">
+          <div class="form-group"><label>单位造价<span class="unit">万元/MW</span></label><input type="number" class="input-num" id="unitCost" value="350" step="1"></div>
+          <div class="form-group"><label>总投资（自动）<span class="unit">万元</span></label><input type="number" class="input-num" id="totalInvestAuto" readonly style="background:rgba(0,0,0,0.2);color:var(--accent-cyan);"></div>
+        </div>
+      </div>
+      <div class="sub-form" id="investCostTableForm" style="display:none;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">💡 分别输入设备费用、施工费用、设计费用，系统自动汇总为总投资</div>
+        <div class="form-row">
+          <div class="form-group"><label>设备费用<span class="unit">万元</span></label><input type="number" class="input-num" id="costEquipment" value="2800" step="1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>施工费用<span class="unit">万元</span></label><input type="number" class="input-num" id="costConstruction" value="500" step="1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>设计费用<span class="unit">万元</span></label><input type="number" class="input-num" id="costDesign" value="200" step="1"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>总投资（自动汇总）<span class="unit">万元</span></label><input type="number" class="input-num" id="totalInvestFromCostTable" readonly style="background:rgba(0,0,0,0.2);color:var(--accent-cyan);font-weight:600;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VAT Rate -->
+    <div class="form-section">
+      <div class="form-label">税率参数</div>
+      <div class="form-row">
+        <div class="form-group"><label>增值税税率<span class="unit">%</span></label><input type="number" class="input-num" id="vatRate" value="13" step="0.1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: OPEX -->
+  <div class="tab-content" id="tab-opex" style="display:none;">
+    <div class="form-section">
+      <div class="form-label">基础运维费</div>
+      <div class="form-row">
+        <div class="form-group"><label>年基础运维费<span class="unit">万元/年</span></label><input type="number" class="input-num" id="baseOPEX" value="30" step="1"></div>
+      </div>
+    </div>
+
+    <!-- Roof Rent -->
+    <div class="form-section">
+      <div class="toggle-row">
+        <div class="toggle-info"><div class="name">🏢 屋顶租金</div><div class="desc">分布式光伏屋顶租赁费用</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="rentEnabled" onchange="updateOpexFlex()"><span class="toggle-slider"></span></label>
+      </div>
+      <div id="rentOptions" style="display:none; padding:10px 0 0;">
+        <div class="radio-group" style="margin-bottom:10px;">
+          <div class="radio-item"><input type="radio" name="rentMode" value="area" id="rmArea" checked onchange="onRentModeChange()"><label for="rmArea">按面积计费</label></div>
+          <div class="radio-item"><input type="radio" name="rentMode" value="discount" id="rmDiscount" onchange="onRentModeChange()"><label for="rmDiscount">按电费折扣计费</label></div>
+        </div>
+        <div id="rentAreaForm">
+          <div class="form-row">
+            <div class="form-group"><label>租赁面积<span class="unit">m²</span></label><input type="number" class="input-num" id="roofArea" value="50000" step="100"></div>
+            <div class="form-group"><label>租金单价<span class="unit">元/m²/年</span></label><input type="number" class="input-num" id="rentUnitPrice" value="2" step="0.1"></div>
+            <div class="form-group"><label>年租金（自动）<span class="unit">万元/年</span></label><input type="number" class="input-num" id="rentTotalAuto" readonly style="background:rgba(0,0,0,0.2);color:var(--accent-cyan);"></div>
+          </div>
+        </div>
+        <div id="rentDiscountForm" style="display:none;">
+          <div class="form-row"><div class="form-group"><label>租金折扣率<span class="unit">%</span></label><input type="number" class="input-num" id="rentDiscountRate" value="10" step="0.5"></div>
+            <div class="form-group"><label>年租金估算<span class="unit">万元/年</span></label><input type="number" class="input-num" id="rentDiscountAuto" readonly style="background:rgba(0,0,0,0.2);color:var(--accent-cyan);"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Land Tax -->
+    <div class="form-section">
+      <div class="toggle-row">
+        <div class="toggle-info"><div class="name">🌾 土地使用税</div><div class="desc">集中式电站土地占用税费</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="landTaxEnabled" onchange="updateOpexFlex()"><span class="toggle-slider"></span></label>
+      </div>
+      <div id="landTaxOptions" style="display:none; padding:10px 0 0;">
+        <div class="form-row">
+          <div class="form-group"><label>土地面积<span class="unit">亩</span></label><input type="number" class="input-num" id="landArea" value="300" step="1"></div>
+          <div class="form-group"><label>税率<span class="unit">元/m²·年</span></label><input type="number" class="input-num" id="landTaxRate" value="6" step="0.5"></div>
+          <div class="form-group"><label>年土地税（自动）<span class="unit">万元/年</span></label><input type="number" class="input-num" id="landTaxTotalAuto" readonly style="background:rgba(0,0,0,0.2);color:var(--accent-cyan);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Management Fee -->
+    <div class="form-section">
+      <div class="toggle-row">
+        <div class="toggle-info"><div class="name">💼 管理费</div><div class="desc">项目管理及其他费用</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="mgmtFeeEnabled" onchange="updateOpexFlex()"><span class="toggle-slider"></span></label>
+      </div>
+      <div id="mgmtFeeOptions" style="display:none; padding:10px 0 0;">
+        <div class="form-row"><div class="form-group"><label>管理费金额<span class="unit">万元/年</span></label><input type="number" class="input-num" id="mgmtFeeAmount" value="" placeholder="手动输入"></div></div>
+      </div>
+    </div>
+
+    <!-- OPEX Summary -->
+    <div class="opex-summary">
+      <table><thead><tr><th>OPEX 项目</th><th class="num-cell">金额（万元/年）</th></tr></thead>
+        <tbody id="opexSummaryBody">
+          <tr><td>基础运维费</td><td class="num-cell" id="sumBaseOpex">30.00</td></tr>
+          <tr id="sumRentRow" class="disabled"><td>屋顶租金</td><td class="num-cell" id="sumRent">—</td></tr>
+          <tr id="sumLandRow" class="disabled"><td>土地使用税</td><td class="num-cell" id="sumLandTax">—</td></tr>
+          <tr id="sumMgmtRow" class="disabled"><td>管理费</td><td class="num-cell" id="sumMgmtFee">—</td></tr>
+          <tr class="total"><td><strong>合计 OPEX</strong></td><td class="num-cell" id="sumTotalOpex"><strong>30.00</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 3: Financing -->
+  <div class="tab-content" id="tab-finance" style="display:none;">
+    <div class="form-section">
+      <div class="form-label">贷款结构</div>
+      <div class="form-row">
+        <div class="form-group"><label>资本金比例<span class="unit">%</span></label><input type="number" class="input-num" id="equityRatio" value="30" min="10" max="100" step="1"></div>
+        <div class="form-group"><label>贷款利率<span class="unit">% 年利率</span></label><input type="number" class="input-num" id="loanRate" value="4.35" step="0.01"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>贷款年限<span class="unit">年</span></label><input type="number" class="input-num" id="loanYears" value="15" min="1" max="25" step="1"></div>
+        <div class="form-group"><label>还款方式</label>
+          <select id="repayMethod"><option value="equalPayment">等额本息</option><option value="equalPrincipal">等额本金</option></select>
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px;background:rgba(88,166,255,0.05);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);">
+      💡 贷款总额 = 总投资 × (1 - 资本金比例)
+    </div>
+  </div>
+
+  <!-- Tab 4: Tax Policy -->
+  <div class="tab-content" id="tab-tax" style="display:none;">
+    <div class="form-section">
+      <div class="form-label">企业所得税</div>
+      <div class="form-row">
+        <div class="form-group"><label>所得税率<span class="unit">%</span></label><input type="number" class="input-num" id="incomeTaxRate" value="25" step="1"></div>
+        <div class="form-group"><label>优惠政策</label>
+          <select id="taxPreference">
+            <option value="none">无优惠</option>
+            <option value="threeFreeThreeHalf" selected>三免三减半</option>
+            <option value="twoFreeThreeHalf">免二减三</option>
+            <option value="fiveFreeFiveHalf">五免五减半</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-label">增值税政策</div>
+      <div class="form-row">
+        <div class="form-group"><label>增值税即征即退政策</label>
+          <select id="vatRebate">
+            <option value="none">无优惠</option>
+            <option value="rebate50" selected>即征即退 50%</option>
+            <option value="rebate70">即征即退 70%</option>
+            <option value="rebate100">即征即退 100%</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-label">附加税费</div>
+      <div class="form-row">
+        <div class="form-group"><label>城建税及附加<span class="unit">%</span></label><input type="number" class="input-num" id="surtaxRate" value="7" step="0.1"></div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-label">折旧参数</div>
+      <div class="form-row">
+        <div class="form-group"><label>折旧年限<span class="unit">年</span></label><input type="number" class="input-num" id="depYears" value="20" min="1" max="30"></div>
+        <div class="form-group"><label>残值率<span class="unit">%</span></label><input type="number" class="input-num" id="residualRate" value="5" step="1"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">折旧方法：直线法 | 年折旧额 = (总投资 - 残值) / 折旧年限</div>
+    </div>
+  </div>
+
+  <!-- Calculate Button -->
+  <div class="calc-btn-container">
+    <button class="calc-btn" onclick="runCalculation()">
+      <span class="btn-icon">🚀</span> 开始测算分析
+    </button>
+  </div>
+</aside>
+
+
+<!-- ==================== RIGHT PANEL - RESULTS ==================== -->
+<main class="result-panel" id="resultPanel">
+
+  <!-- Empty State -->
+  <div class="empty-state" id="emptyState">
+    <div class="icon">⚡</div>
+    <p>调整左侧参数后点击「开始测算分析」</p>
+    <p class="hint">支持全额上网、自发自用+余电上网、全部自用三种模式</p>
+  </div>
+
+  <!-- Results Container (hidden until calculated) -->
+  <div id="resultsContainer" style="display:none;">
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card irr">
+        <div class="kpi-label">全投资 IRR（税后）</div>
+        <div class="kpi-value" id="kpiIrr">—</div>
+        <div class="kpi-hint" id="kpiIrrHint"></div>
+      </div>
+      <div class="kpi-card npv">
+        <div class="kpi-label">全投资 NPV（万元）</div>
+        <div class="kpi-value" id="kpiNpv">—</div>
+        <div class="kpi-hint" id="kpiNpvHint"></div>
+      </div>
+      <div class="kpi-card lcoe">
+        <div class="kpi-label">LCOE（元/kWh）</div>
+        <div class="kpi-value" id="kpiLcoe">—</div>
+        <div class="kpi-hint" id="kpiLcoeHint">平准化度电成本</div>
+      </div>
+      <div class="kpi-card payback">
+        <div class="kpi-label">动态回收期（年）</div>
+        <div class="kpi-value" id="kpiPayback">—</div>
+        <div class="kpi-hint" id="kpiPaybackHint"></div>
+      </div>
+    </div>
+
+    <!-- Section 1: Core Financial Indicators -->
+    <div class="section" id="secIndicators">
+      <div class="section-header">
+        <div class="section-title"><span class="emoji">📊</span> 核心财务指标总表</div>
+      </div>
+      <div class="section-body">
+        <div class="indicator-grid">
+          <div class="indicator-col">
+            <h4>全投资口径</h4>
+            <div class="data-table-wrapper"><table class="data-table" id="tblIndicators1"></table></div>
+          </div>
+          <div class="indicator-col">
+            <h4>资本金口径</h4>
+            <div class="data-table-wrapper"><table class="data-table" id="tblIndicators2"></table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Parameter Summary -->
+    <div class="section" id="secParams">
+      <div class="section-header">
+        <div class="section-title"><span class="emoji">📋</span> 参数汇总</div>
+      </div>
+      <div class="section-body">
+        <div class="data-table-wrapper"><table class="data-table" id="tblParams"></table></div>
+      </div>
+    </div>
+
+    <!-- Section 3: Sensitivity Analysis -->
+    <div class="section" id="secSensitivity">
+      <div class="section-header">
+        <div class="section-title"><span class="emoji">📈</span> 敏感性分析</div>
+      </div>
+      <div class="section-body">
+        <div class="sensitivity-chart-container">
+          <canvas id="sensitivityChart"></canvas>
+        </div>
+        <div class="sensitivity-table-wrap data-table-wrapper">
+          <table class="data-table sensitivity-table" id="tblSensitivity"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Annual Cash Flow -->
+    <div class="section" id="secCashFlow">
+      <div class="section-header">
+        <div class="section-title"><span class="emoji">💰</span> 年度现金流明细</div>
+      </div>
+      <div class="section-body">
+        <div class="data-table-wrapper"><table class="data-table cf-table" id="tblCashFlow"></table></div>
+      </div>
+    </div>
+
+    <!-- Section 5: Tax Summary -->
+    <div class="section" id="secTax">
+      <div class="section-header">
+        <div class="section-title"><span class="emoji">🧾</span> 税务汇总</div>
+      </div>
+      <div class="section-body">
+        <div class="data-table-wrapper"><table class="data-table" id="tblTaxSummary"></table></div>
+      </div>
+    </div>
+
+    <!-- Export Button -->
+    <div class="section">
+      <div class="export-container">
+        <button class="export-btn" onclick="exportWord()">📄 一键导出 Word 报告</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+
+</main>
+</div>
+
+<script>
+/* ================================================================
+   光伏投资分析测算模型 v7.4 — 核心计算引擎
+   v7.4 彻底修复三大交互问题：
+   1. Tab 切换：直接操作 style.display + onclick 内联
+   2. 并网方式：直接操作 style.display + onchange 内联
+   3. 项目成本表：直接操作 style.display + onchange 内联
+   所有事件绑定均使用内联属性 + DOMContentLoaded 双保险
+   ================================================================ */
+
+// ============ Global State ============
+var calcResults = null;
+
+// ============ 工具函数 ============
+function _(id){return document.getElementById(id);}
+function f(v){return parseFloat(v)||0;}
+function i(v){return parseInt(v)||0;}
+
+// ============ Tab 切换（核心：直接设置 style.display）============
+function switchTab(targetId, btnId) {
+  // 1. 隐藏所有 tab content
+  var contents = document.getElementsByClassName('tab-content');
+  for (var c = 0; c < contents.length; c++) contents[c].style.display = 'none';
+  // 2. 移除所有按钮 active
+  var btns = document.getElementsByClassName('tab-btn');
+  for (var b = 0; b < btns.length; b++) btns[b].classList.remove('active');
+  // 3. 显示目标内容
+  var tc = _(targetId);
+  if (tc) { tc.style.display = 'block'; tc.classList.add('active'); }
+  // 4. 激活目标按钮
+  var tb = _(btnId);
+  if (tb) tb.classList.add('active');
+}
+
+// ============ 并网方式联动（核心：直接设置 style.display）============
+function syncGridModeUI() {
+  try {
+    var mode = '';
+    var radios = document.getElementsByName('gridMode');
+    for (var j = 0; j < radios.length; j++) {
+      if (radios[j].checked) { mode = radios[j].value; break; }
+    }
+    // 根据模式控制三个价格区域的显示/隐藏
+    _('priceFullGrid').style.display = (mode === 'fullGrid') ? '' : 'none';
+    _('priceSelfUse').style.display = (mode === 'selfUse') ? '' : 'none';
+    _('priceFullSelf').style.display = (mode === 'fullSelf') ? '' : 'none';
+  } catch(e) { console.error('GridMode error:', e); }
+}
+
+// ============ 投资方式联动（核心：直接设置 style.display）============
+function syncInvestMode() {
+  try {
+    var mode = '';
+    var radios = document.getElementsByName('investMode');
+    for (var j = 0; j < radios.length; j++) {
+      if (radios[j].checked) { mode = radios[j].value; break; }
+    }
+    _('investPerMWForm').style.display = (mode === 'perMW') ? '' : 'none';
+    _('investCostTableForm').style.display = (mode === 'costTable') ? '' : 'none';
+    if (mode === 'perMW') updateTotalInvestAuto();
+    if (mode === 'costTable') updateCostTableTotal();
+  } catch(e) { console.error('InvestMode error:', e); }
+}
+
+// ============ 总投资自动计算（单位造价模式）============
+function updateTotalInvestAuto() {
+  var cap = f(_('capacity').value);
+  var uc = f(_('unitCost').value);
+  _('totalInvestAuto').value = (cap * uc).toFixed(2);
+}
+
+// ============ 项目成本表汇总 ============
+function updateCostTableTotal() {
+  var equip = f(_('costEquipment').value);
+  var construct = f(_('costConstruction').value);
+  var design = f(_('costDesign').value);
+  _('totalInvestFromCostTable').value = (equip + construct + design).toFixed(2);
+}
+
+// ============ OPEX 开关联动 ==========
+function updateOpexFlex() {
+  try {
+    _('rentOptions').style.display = _('rentEnabled').checked ? '' : 'none';
+    _('landTaxOptions').style.display = _('landTaxEnabled').checked ? '' : 'none';
+    _('mgmtFeeOptions').style.display = _('mgmtFeeEnabled').checked ? '' : 'none';
+    updateOpexSummary();
+  } catch(e) { console.error('OpexFlex error:', e); }
+}
+
+function onRentModeChange() {
+  try {
+    var val = '';
+    var rms = document.getElementsByName('rentMode');
+    for (var j = 0; j < rms.length; j++) { if (rms[j].checked) { val = rms[j].value; break; } }
+    _('rentAreaForm').style.display = (val === 'area') ? '' : 'none';
+    _('rentDiscountForm').style.display = (val === 'area') ? 'none' : '';
+    updateOpexSummary();
+  } catch(e) { console.error('RentMode error:', e); }
+}
+
+function updateOpexSummary() {
+  try {
+    var base = f(_('baseOPEX').value);
+    var total = base;
+
+    var rentOn = _('rentEnabled').checked;
+    var rentVal = 0;
+    if (rentOn) {
+      var rmVal = ''; var rms2 = document.getElementsByName('rentMode');
+      for (var j = 0; j < rms2.length; j++) { if (rms2[j].checked) { rmVal = rms2[j].value; break; } }
+      if (rmVal === 'area') {
+        rentVal = f(_('roofArea').value) * f(_('rentUnitPrice').value) / 10000;
+        _('rentTotalAuto').value = rentVal.toFixed(2);
+      } else {
+        var discRate = f(_('rentDiscountRate').value) / 100;
+        var estInc = f(_('capacity').value) * 1000 * f(_('firstYearHours').value) * f(_('selfPrice').value) / 10000;
+        rentVal = estInc * discRate;
+        _('rentDiscountAuto').value = rentVal.toFixed(2);
+      }
+      total += rentVal;
+    }
+    _('sumRentRow').classList.toggle('disabled', !rentOn);
+    _('sumRent').textContent = rentOn ? rentVal.toFixed(2) : '\u2014';
+
+    var landOn = _('landTaxEnabled').checked;
+    var landVal = 0;
+    if (landOn) {
+      landVal = f(_('landArea').value) * 666.67 * f(_('landTaxRate').value) / 10000;
+      _('landTaxTotalAuto').value = landVal.toFixed(2);
+      total += landVal;
+    }
+    _('sumLandRow').classList.toggle('disabled', !landOn);
+    _('sumLandTax').textContent = landOn ? landVal.toFixed(2) : '\u2014';
+
+    var mgmtOn = _('mgmtFeeEnabled').checked;
+    var mgmtVal = mgmtOn ? f(_('mgmtFeeAmount').value) : 0;
+    if (mgmtOn) total += mgmtVal;
+    _('sumMgmtRow').classList.toggle('disabled', !mgmtOn);
+    _('sumMgmtFee').textContent = mgmtOn ? mgmtVal.toFixed(2) : '\u2014';
+
+    _('sumBaseOpex').textContent = base.toFixed(2);
+    _('sumTotalOpex').innerHTML = '<strong>' + total.toFixed(2) + '</strong>';
+  } catch(e) { console.error('OpexSummary error:', e); }
+}
+
+// ============ 预设方案 ============
+function applyPreset(name, btnEl) {
+  try {
+    document.querySelectorAll('.preset-btn').forEach(function(b){b.classList.remove('active');});
+    if (btnEl) btnEl.classList.add('active');
+
+    if (name === 'ruinen') {
+      setVal('projectName','睿恩分布式光伏5MW项目'); setVal('capacity',5);
+      setVal('projectLife',20); setRadio('gridMode','selfUse');
+      setVal('gridPriceSelfUse',0.45); setVal('selfPrice',0.85); setVal('selfRatio',80);
+      setVal('firstYearHours',1100); setVal('degradationRate',0.5);
+      setRadio('investMode','perMW'); setVal('unitCost',380);
+      setVal('baseOPEX',30);
+      setCheck('rentEnabled',true); setVal('roofArea',50000); setVal('rentUnitPrice',2);
+      setRadio('rentMode','area');
+      setCheck('landTaxEnabled',true); setVal('landArea',300); setVal('landTaxRate',6);
+      setCheck('mgmtFeeEnabled',true); setVal('mgmtFeeAmount',15);
+      setVal('equityRatio',30); setVal('loanRate',4.35); setVal('loanYears',15);
+      _('repayMethod').value='equalPayment';
+      setVal('incomeTaxRate',25); _('taxPreference').value='threeFreeThreeHalf';
+      _('vatRebate').value='rebate50'; setVal('vatRate',13);
+      setVal('surtaxRate',7); setVal('depYears',20); setVal('residualRate',5);
+    } else if (name === 'xixiasha') {
+      setVal('projectName','西夏墅集中式光伏18MW电站'); setVal('capacity',18);
+      setVal('projectLife',25); setRadio('gridMode','fullGrid'); setVal('gridPrice',0.42);
+      setVal('firstYearHours',1050); setVal('degradationRate',0.5);
+      setRadio('investMode','perMW'); setVal('unitCost',340);
+      setVal('baseOPEX',108);
+      setCheck('rentEnabled',false);
+      setCheck('landTaxEnabled',true); setVal('landArea',270); setVal('landTaxRate',6);
+      setCheck('mgmtFeeEnabled',false);
+      setVal('equityRatio',30); setVal('loanRate',4.05); setVal('loanYears',15);
+      _('repayMethod').value='equalPayment';
+      setVal('incomeTaxRate',25); _('taxPreference').value='threeFreeThreeHalf';
+      _('vatRebate').value='rebate50'; setVal('vatRate',13);
+      setVal('surtaxRate',7); setVal('depYears',20); setVal('residualRate',5);
+    } else {
+      setVal('projectName','通用工商业光伏项目'); setVal('capacity',10);
+      setVal('projectLife',20); setRadio('gridMode','fullGrid'); setVal('gridPrice',0.45);
+      setVal('firstYearHours',1100); setVal('degradationRate',0.5);
+      setRadio('investMode','perMW'); setVal('unitCost',350);
+      setVal('baseOPEX',30);
+      setCheck('rentEnabled',false); setCheck('landTaxEnabled',false); setCheck('mgmtFeeEnabled',false);
+      setVal('equityRatio',30); setVal('loanRate',4.35); setVal('loanYears',15);
+      _('repayMethod').value='equalPayment';
+      setVal('incomeTaxRate',25); _('taxPreference').value='threeFreeThreeHalf';
+      _('vatRebate').value='rebate50'; setVal('vatRate',13);
+      setVal('surtaxRate',7); setVal('depYears',20); setVal('residualRate',5);
+    }
+    syncAllUI();
+  } catch(e) { console.error('Preset error:', e); }
+}
+
+function setVal(id,val){var el=_(id);if(el){el.value=String(val);el.dispatchEvent(new Event('input'));}}
+function setRadio(name,val){var els=document.getElementsByName(name);for(var j=0;j<els.length;j++){if(els[j].value===val)els[j].checked=true;}}
+function setCheck(id,val){_(id).checked=val;}
+
+function syncAllUI() { syncGridModeUI(); syncInvestMode(); updateOpexFlex(); updateTotalInvestAuto(); updateCostTableTotal(); }
+
+// ============ 参数采集 ============
+function getInputs() {
+  var gMode = '', gmRadios = document.getElementsByName('gridMode');
+  for (var j = 0; j < gmRadios.length; j++) { if (gmRadios[j].checked) { gMode = gmRadios[j].value; break; } }
+  var iMode = '', imRadios = document.getElementsByName('investMode');
+  for (var k = 0; k < imRadios.length; k++) { if (imRadios[k].checked) { iMode = imRadios[k].value; break; } }
+
+  var gridPV = 0, selfPV = 0, fullSelfPV = 0;
+  if (gMode === 'fullGrid') {
+    gridPV = f(_('gridPrice').value);
+  } else if (gMode === 'selfUse') {
+    gridPV = f(_('gridPriceSelfUse').value);
+    selfPV = f(_('selfPrice').value);
+  } else {
+    selfPV = f(_('fullSelfPrice').value);
+    fullSelfPV = selfPV;
+  }
+
+  var totalInv = 0;
+  if (iMode === 'perMW') {
+    totalInv = f(_('capacity').value) * f(_('unitCost').value);
+  } else {
+    totalInv = f(_('costEquipment').value) + f(_('costConstruction').value) + f(_('costDesign').value);
+  }
+
+  var rm = ''; var rmRadios = document.getElementsByName('rentMode');
+  for (var m = 0; m < rmRadios.length; m++) { if (rmRadios[m].checked) { rm = rmRadios[m].value; break; } }
+
+  return {
+    projectName: _('projectName').value,
+    capacity: f(_('capacity').value),
+    projectLife: i(_('projectLife').value),
+    gridMode: gMode,
+    gridPrice: gridPV,
+    selfPrice: selfPV,
+    selfRatio: (gMode === 'selfUse') ? f(_('selfRatio').value)/100 : 0,
+    fullSelfPrice: fullSelfPV,
+    firstYearHours: f(_('firstYearHours').value),
+    degradationRate: f(_('degradationRate').value)/100,
+    investMode: iMode,
+    unitCost: f(_('unitCost').value),
+    totalInvestDirect: totalInv,
+    vatRate: f(_('vatRate').value)/100,
+    baseOPEX: f(_('baseOPEX').value),
+    rentEnabled: _('rentEnabled').checked,
+    rentMode: rm,
+    roofArea: f(_('roofArea').value),
+    rentUnitPrice: f(_('rentUnitPrice').value),
+    rentDiscountRate: f(_('rentDiscountRate').value)/100,
+    landTaxEnabled: _('landTaxEnabled').checked,
+    landArea: f(_('landArea').value),
+    landTaxRate: f(_('landTaxRate').value),
+    mgmtFeeEnabled: _('mgmtFeeEnabled').checked,
+    mgmtFeeAmount: f(_('mgmtFeeAmount').value),
+    equityRatio: f(_('equityRatio').value)/100,
+    loanRate: f(_('loanRate').value)/100,
+    loanYears: i(_('loanYears').value),
+    repayMethod: _('repayMethod').value,
+    incomeTaxRate: f(_('incomeTaxRate').value)/100,
+    taxPreference: _('taxPreference').value,
+    vatRebatePolicy: _('vatRebate').value,
+    surtaxRate: f(_('surtaxRate').value)/100,
+    depYears: i(_('depYears').value),
+    residualRate: f(_('residualRate').value)/100
+  };
+}
+
+// ============ 计算引擎 ============
+function calculate(p) {
+  var N = p.projectLife;
+  var totalInvest = (p.investMode === 'perMW') ? (p.capacity * p.unitCost) : p.totalInvestDirect;
+  var loanAmount = totalInvest * (1 - p.equityRatio);
+  var equityAmount = totalInvest * p.equityRatio;
+  var annualDep = (totalInvest - totalInvest * p.residualRate) / p.depYears;
+  var inputVATCredit = totalInvest * p.vatRate;
+
+  var vatRbMap = {'none':0,'rebate50':0.5,'rebate70':0.7,'rebate100':1};
+  var vatRbRatio = vatRbMap[p.vatRebatePolicy] || 0;
+
+  function getITCoeff(yr) {
+    if (p.taxPreference === 'none') return 1;
+    if (p.taxPreference === 'threeFreeThreeHalf') { if(yr<=3) return 0; if(yr<=6) return 0.5; return 1; }
+    if (p.taxPreference === 'twoFreeThreeHalf') { if(yr<=2) return 0; if(yr<=5) return 0.5; return 1; }
+    if (p.taxPreference === 'fiveFreeFiveHalf') { if(yr<=5) return 0; if(yr<=10) return 0.5; return 1; }
+    return 1;
+  }
+
+  // 还款计划
+  var repaySched = [];
+  if (loanAmount > 0 && p.loanYears > 0) {
+    var mRate = p.loanRate / 12;
+    var totM = p.loanYears * 12;
+    if (p.repayMethod === 'equalPayment') {
+      var A = (mRate > 0) ? (loanAmount * mRate * Math.pow(1+mRate,totM) / (Math.pow(1+mRate,totM)-1)) : (loanAmount/totM);
+      var balance = loanAmount;
+      for (var m = 1; m <= totM; m++) {
+        var intPart = balance * mRate;
+        var prinPart = A - intPart;
+        balance -= prinPart;
+        var yi = Math.ceil(m/12) - 1;
+        if (!repaySched[yi]) repaySched[yi] = {principal:0, interest:0, payment:0};
+        repaySched[yi].principal += prinPart; repaySched[yi].interest += intPart; repaySched[yi].payment += A;
+      }
+    } else {
+      var mp = loanAmount / totM;
+      var bal2 = loanAmount;
+      for (var m2 = 1; m2 <= totM; m2++) {
+        var intPart2 = bal2 * mRate;
+        bal2 -= mp;
+        var yi2 = Math.ceil(m2/12) - 1;
+        if (!repaySched[yi2]) repaySched[yi2] = {principal:0, interest:0, payment:0};
+        repaySched[yi2].principal += mp; repaySched[yi2].interest += intPart2; repaySched[yi2].payment += mp + intPart2;
+      }
+    }
+  }
+
+  var years = [];
+  var accVATLoss = 0;
+
+  for (var y = 0; y <= N; y++) {
+    var yd = {year:y};
+
+    if (y === 0) {
+      yd.generation = 0; yd.grossRevenue = 0; yd.netRevNoVAT = 0; yd.hours = 0;
+      yd.opex = 0; yd.vatOutput = 0; yd.vatInput = 0; yd.vatPayable = 0;
+      yd.vatRebate = 0; yd.vatNet = 0; yd.surtax = 0; yd.dep = 0;
+      yd.interest = 0; yd.principal = 0; yd.taxableIncome = 0;
+      yd.incomeTax = 0; yd.itCoeff = 1;
+      yd.cfPT_total = -totalInvest; yd.cfAT_total = -totalInvest;
+      yd.cfPT_eq = -equityAmount; yd.cfAT_eq = -equityAmount;
+      years.push(yd); continue;
+    }
+
+    var hrs = p.firstYearHours * Math.pow(1 - p.degradationRate, y - 1);
+    var gen = p.capacity * 1000 * hrs;
+
+    // 收入计算
+    var grossRev = 0, netRevNoVAT = 0;
+    if (p.gridMode === 'fullGrid') {
+      grossRev = gen * p.gridPrice / 10000;
+      netRevNoVAT = grossRev / (1 + p.vatRate);
+    } else if (p.gridMode === 'selfUse') {
+      var selfGen = gen * p.selfRatio;
+      var surplusGen = gen * (1 - p.selfRatio);
+      grossRev = (selfGen * p.selfPrice + surplusGen * p.gridPrice) / 10000;
+      netRevNoVAT = grossRev / (1 + p.vatRate);
+    } else {
+      grossRev = gen * p.fullSelfPrice / 10000;
+      netRevNoVAT = grossRev / (1 + p.vatRate);
+    }
+
+    // OPEX
+    var opex = p.baseOPEX;
+    if (p.rentEnabled) {
+      if (p.rentMode === 'area') opex += p.roofArea * p.rentUnitPrice / 10000;
+      else opex += grossRev * p.rentDiscountRate;
+    }
+    if (p.landTaxEnabled) opex += p.landArea * 666.67 * p.landTaxRate / 10000;
+    if (p.mgmtFeeEnabled) opex += p.mgmtFeeAmount;
+
+    // 折旧
+    var dep = (y <= p.depYears) ? annualDep : 0;
+
+    // VAT 计算
+    var vatOut = netRevNoVAT * p.vatRate;
+    var vatIn = (y === 1) ? inputVATCredit : 0;
+    var rawVATPay = vatOut - vatIn - accVATLoss;
+    var vatPay = Math.max(0, rawVATPay);
+    if (rawVATPay < 0) accVATLoss = Math.abs(rawVATPay); else accVATLoss = 0;
+    var vatRb = vatPay * vatRbRatio;
+    var vatNet = vatPay - vatRb;
+
+    // 附加税
+    var surtx = vatNet * p.surtaxRate;
+
+    // 还款
+    var prin_y = repaySched[y-1] ? repaySched[y-1].principal : 0;
+    var int_y = repaySched[y-1] ? repaySched[y-1].interest : 0;
+
+    // 所得税
+    var itCoef = getITCoeff(y);
+    var taxable = netRevNoVAT - opex - dep - int_y - vatNet - surtx;
+    if (y === 1) taxable -= inputVATCredit;
+    var incTax = (taxable > 0) ? (taxable * p.incomeTaxRate * itCoef) : 0;
+
+    // 现金流
+    var cfPT_tot = grossRev - opex;
+    var cfAT_tot = grossRev - opex - vatNet - surtx - incTax;
+    var cfPT_eq = grossRev - opex - prin_y - int_y;
+    var cfAT_eq = grossRev - opex - prin_y - int_y - vatNet - surtx - incTax;
+
+    yd.hours = hrs; yd.generation = gen; yd.grossRevenue = grossRev;
+    yd.netRevNoVAT = netRevNoVAT; yd.opex = opex; yd.dep = dep;
+    yd.vatOutput = vatOut; yd.vatInput = vatIn; yd.vatPayable = vatPay;
+    yd.vatRebate = vatRb; yd.vatNet = vatNet; yd.surtax = surtx;
+    yd.principal = prin_y; yd.interest = int_y;
+    yd.taxableIncome = Math.max(0, taxable); yd.incomeTax = incTax; yd.itCoeff = itCoef;
+    yd.cfPT_total = cfPT_tot; yd.cfAT_total = cfAT_tot;
+    yd.cfPT_eq = cfPT_eq; yd.cfAT_eq = cfAT_eq;
+    years.push(yd);
+  }
+
+  return {
+    params:p, totalInvest:totalInvest, loanAmount:loanAmount, equityAmount:equityAmount,
+    annualDep:annualDep, years:years, N:N, wacc:0.07
+  };
+}
+
+// ============ 财务指标计算 ============
+function calcIRR(cfs) {
+  var x0 = 0.1, x1;
+  for (var iter = 0; iter < 200; iter++) {
+    var npv0 = npvCF(x0, cfs), dnpv = dNpvCF(x0, cfs);
+    if (Math.abs(dnpv) < 1e-12) break;
+    x1 = x0 - npv0/dnpv;
+    if (Math.abs(x1-x0) < 1e-10) break;
+    x0 = x1;
+  }
+  if (isNaN(x0)||!isFinite(x0)) return null;
+  if (Math.abs(npvCFSafe(x0,cfs)) < 1 && x0 > -1 && x0 < 10) return x0;
+  return null;
+}
+function npvCF(r,cfs){var s=0,rv=1+r;for(var t=0;t<cfs.length;t++) s+=cfs[t]/Math.pow(rv,t); return s;}
+function dNpvCF(r,cfs){var s=0,rv=1+r;for(var t=1;t<cfs.length;t++) s-=t*cfs[t]/Math.pow(rv,t+1); return s;}
+function npvCFSafe(r,cfs){try{return npvCF(r,cfs);}catch(e){return NaN;}}
+function calcNPV(cfs,w){return npvCF(w||0.07,cfs);}
+function calcPBstatic(cfs){var c=0;for(var t=0;t<cfs.length;t++){c+=cfs[t];if(c>=0)return t;} return cfs.length;}
+function calcPBdynamic(cfs,w){var c=0,rv=w||0.07;for(var t=0;t<cfs.length;t++){c+=cfs[t]/Math.pow(rv,t);if(c>=0)return t;} return cfs.length;}
+function calcPI(npv,inv){return(inv===0)?0:(npv+inv)/inv;}
+
+function calcLCOE(res) {
+  var w=res.wacc, rv=1+w, dc=0, dg=0;
+  for (var t=0;t<=res.N;t++){
+    var y=res.years[t];
+    if(t===0) dc+=res.totalInvest/rv;
+    else dc+=y.opex/Math.pow(rv,t);
+    dg+=y.generation/Math.pow(rv,t);
+  }
+  return (dg>0) ? ((dc*10000)/dg) : 0;
+}
+
+function computeAllIndicators(res) {
+  var PT_t=[], AT_t=[], PT_e=[], AT_e=[];
+  for (var i=0;i<res.years.length;i++) {
+    PT_t.push(res.years[i].cfPT_total); AT_t.push(res.years[i].cfAT_total);
+    PT_e.push(res.years[i].cfPT_eq);   AT_e.push(res.years[i].cfAT_eq);
+  }
+  var lcoe = calcLCOE(res);
+  var cumProf = 0;
+  for (var t2=1;t2<=res.N;t2++) cumProf += res.years[t2].cfAT_total;
+  return {
+    irrPT_t:calcIRR(PT_t), irrAT_t:calcIRR(AT_t),
+    irrPT_e:calcIRR(PT_e), irrAT_e:calcIRR(AT_e),
+    npvPT_t:calcNPV(PT_t,res.wacc), npvAT_t:calcNPV(AT_t,res.wacc),
+    npvPT_e:calcNPV(PT_e,res.wacc), npvAT_e:calcNPV(AT_e,res.wacc),
+    pbST_t:calcPBstatic(PT_t), pbAT_t:calcPBstatic(AT_t),
+    pbDT_t:calcPBdynamic(AT_t,res.wacc), pbST_e:calcPBstatic(PT_e),
+    piPT:calcPI(calcNPV(PT_t,res.wacc),res.totalInvest),
+    piAT:calcPI(calcNPV(AT_t,res.wacc),res.totalInvest),
+    lcoe:lcoe,
+    firstYearRevenue: res.years[1]?res.years[1].grossRevenue:0,
+    firstYearOPEX: res.years[1]?res.years[1].opex:0,
+    cumProfit:cumProf, raw:res
+  };
+}
+
+// ============ 敏感性分析 ============
+function runSensitivity(baseRes) {
+  var factors=['totalInvest','electricityPrice','utilHours','opex'];
+  var fnames={'totalInvest':'总投资','electricityPrice':'电价','utilHours':'利用小时','opex':'运营成本'};
+  var vars=[-0.10,-0.05,0,0.05,0.10], data={};
+  factors.forEach(function(fc){
+    data[fc]={};
+    vars.forEach(function(v){
+      var np = JSON.parse(JSON.stringify(baseRes.params));
+      if(fc==='totalInvest'){np.unitCost=np.unitCost*(1+v);np.investMode='perMW';}
+      else if(fc==='electricityPrice'){
+        if(np.gridMode==='fullGrid') np.gridPrice*=(1+v);
+        else if(np.gridMode==='selfUse'){np.selfPrice*=(1+v);np.gridPrice*=(1+v);}
+        else np.fullSelfPrice*=(1+v);
+      } else if(fc==='utilHours'){np.firstYearHours*=(1+v);}
+      else if(fc==='opex'){np.baseOPEX*=(1+v);}
+      var r2=calculate(np), cfs2=[];
+      for(var i=0;i<r2.years.length;i++) cfs2.push(r2.years[i].cfAT_total);
+      data[fc][v]=calcIRR(cfs2);
+    });
+  });
+  return {factorNames:fnames,variations:vars,data:data};
+}
+
+// ============ 主计算入口 ============
+function runCalculation() {
+  showLoading(true);
+  setTimeout(function(){
+    try {
+      var p = getInputs(), res = calculate(p), ind = computeAllIndicators(res), sens = runSensitivity(res);
+      calcResults = {raw:res, indicators:ind, sensitivity:sens};
+      renderKPIs(ind); renderIndicators(ind,p); renderParams(res);
+      renderSensitivity(sens); renderCashFlow(res); renderTaxSummary(res);
+      _('emptyState').style.display='none'; _('resultsContainer').style.display='';
+    } catch(e) { console.error('Calc error:',e); alert('\u8BA1\u7B97\u51FA\u9519\uFF1A'+e.message); }
+    showLoading(false);
+  }, 150);
+}
+
+function showLoading(on) { _('loadingOverlay').classList.toggle('show',on); }
+
+// ============ 渲染函数 ============
+function fmtN(n,d){if(n==null)return'\u2014';if(d==null)d=2;var s=Math.abs(n).toFixed(d);return n<0?'-'+s:s;}
+function fmtP(n){if(n==null)return'\u2014';return(n*100).toFixed(2)+'%';}
+function clsV(v,p,n,ne){if(v==null)return ne||'';return v>p?p:(v<n?n:ne||'');}
+
+function renderKPIs(ind) {
+  var irrv = ind.irrAT_t;
+  _('kpiIrr').textContent = (irrv != null) ? fmtP(irrv) : '\u65E0\u6B63\u5411 IRR';
+  _('kpiIrr').className = 'kpi-value '+clsV(irrv,'positive','negative','neutral');
+  _('kpiIrrHint').textContent = (ind.irrPT_t != null) ? '\u7A0E\u524D '+fmtP(ind.irrPT_t) : '';
+  var npvv = ind.npvAT_t;
+  _('kpiNpv').textContent = (npvv != null) ? fmtN(npvv) : '\u2014';
+  _('kpiNpv').className = 'kpi-value '+clsV(npvv,'positive','negative','neutral');
+  _('kpiNpvHint').textContent = 'WACC='+((ind.raw)?fmtP(ind.raw.wacc):'7%');
+  var lv = ind.lcoe;
+  _('kpiLcoe').textContent = (lv != null) ? fmtN(lv,3) : '\u2014';
+  _('kpiLcoe').className = 'kpi-value neutral';
+  var pb = ind.pbDT_t, mx = ind.raw?ind.raw.N:20;
+  _('kpiPayback').textContent = (pb&&pb<=mx)?pb.toFixed(1)+' \u5E74':'> '+mx+' \u5E74';
+  _('kpiPayback').className = 'kpi-value '+clsV(pb&&pb<=mx,null,'negative','neutral');
+  _('kpiPaybackHint').textContent = '\u9759\u6001 '+((ind.pbAT_t&&ind.pbAT_t<=mx)?ind.pbAT_t.toFixed(1):'>'+mx);
+}
+
+function renderIndicators(ind,p) {
+  var t1=_('tblIndicators1'), h1='<thead><tr><th>\u6307\u6807</th><th class="num">\u7A0E\u524D</th><th class="num">\u7A0E\u540E</th></tr></thead><tbody>';
+  var rs=[
+    ['\u5168\u6295\u8D44 IRR',ind.irrPT_t,ind.irrAT_t,true],
+    ['\u5168\u6295\u8D44 NPV(\u4E07\u5143)',ind.npvPT_t,ind.npvAT_t],
+    ['\u9759\u6001\u56DE\u6536\u671F(\u5E74)',ind.pbST_t,ind.pbAT_t,false,true],
+    ['\u52A8\u6001\u56DE\u6536\u671F(\u5E74)',null,ind.pbDT_t,false,true],
+    ['\u76C8\u5229\u6307\u6570 PI',ind.piPT,ind.piAT]
+  ];
+  rs.forEach(function(r){
+    var ip=r[3],iy=r[4];
+    h1+='<tr><td class="label-cell">'+r[0]+'</td>';
+    h1+='<td class="num">'+(ip?((r[1]!=null)?fmtP(r[1]):'\u2014'):iy?(((r[1])&&(r[1]<=p.projectLife))?r[1].toFixed(1):'>'+p.projectLife):((r[1]!=null)?fmtN(r[1]):'\u2013'))+'</td>';
+    h1+='<td class="num">'+(ip?((r[2]!=null)?fmtP(r[2]):'\u2014'):iy?(((r[2])&&(r[2]<=p.projectLife))?r[2].toFixed(1):'>'+p.projectLife):((r[2]!=null)?fmtN(r[2]):'\u2013'))+'</td></tr>';
+  });
+  h1+='<tr class="group-header"><td colspan="3">\u5176\u4ED6\u6307\u6807</td></tr>';
+  h1+='<tr><td class="label-cell">\u9996\u5E74\u53D1\u7535\u6536\u5165(\u4E07\u5143)</td><td class="num" colspan="2">'+fmtN(ind.firstYearRevenue)+'</td></tr>';
+  h1+='<tr><td class="label-cell">\u9996\u5E74\u8FD0\u8425\u6210\u672C(\u4E07\u5143)</td><td class="num" colspan="2">'+fmtN(ind.firstYearOPEX)+'</td></tr>';
+  h1+='<tr><td class="label-cell">LCOE(\u5143/kWh)</td><td class="num" colspan="2">'+((ind.lcoe!=null)?fmtN(ind.lcoe,3):'\u2013')+'</td></tr>';
+  h1+='<tr><td class="label-cell">\u7D2F\u8BA1\u51C0\u5229\u6DA6(\u4E07\u5143,\u7A0E\u540E)</td><td class="num" colspan="2">'+fmtN(ind.cumProfit)+'</td></tr>';
+  h1+='</tbody>'; t1.innerHTML=h1;
+
+  var t2=_('tblIndicators2'), h2='<thead><tr><th>\u6307\u6807</th><th class="num">\u7A0E\u524D</th><th class="num">\u7A0E\u540E</th></tr></thead><tbody>';
+  var rs2=[['\u8D44\u672C\u91D1 IRR',ind.irrPT_e,ind.irrAT_e,true],['\u8D44\u672C\u91D1 NPV(\u4E07\u5143)',ind.npvPT_e,ind.npvAT_e]];
+  rs2.forEach(function(r){
+    h2+='<tr><td class="label-cell">'+r[0]+'</td>';
+    h2+='<td class="num">'+(r[3]?((r[1]!=null)?fmtP(r[1]):'\u2013'):((r[1]!=null)?fmtN(r[1]):'\u2013'))+'</td>';
+    h2+='<td class="num">'+(r[3]?((r[2]!=null)?fmtP(r[2]):'\u2013'):((r[2]!=null)?fmtN(r[2]):'\u2013'))+'</td></tr>';
+  }); h2+='</tbody>'; t2.innerHTML=h2;
+}
+
+function renderParams(res) {
+  var p=res.params;
+  var gmm={'fullGrid':'\u5168\u989D\u4E0A\u7F51','selfUse':'\u81EA\u53D1\u81EA\u7528+\u4F59\u7535\u4E0A\u7F51','fullSelf':'\u5168\u90E8\u81EA\u7528'};
+  var rpm={'equalPayment':'\u7B49\u989D\u672C\u606F','equalPrincipal':'\u7B49\u989D\u672C\u91D1'};
+  var rows=[
+    ['\u9879\u76EE\u540D\u79F0',p.projectName],['\u88C5\u673A\u5BB9\u91CF',p.capacity+' MW'],
+    ['\u8FD0\u8425\u5E74\u9650',p.projectLife+' \u5E74'],['\u5E76\u7F51\u65B9\u5F0F',gmm[p.gridMode]],
+    ['\u9996\u5E74\u5229\u7528\u5C0F\u65F6',p.firstYearHours+' h'],
+    ['\u5E74\u8870\u51CF\u7387',(p.degradationRate*100).toFixed(1)+'%'],
+    ['\u603B\u6295\u8D44',fmtN(res.totalInvest)+' \u4E07\u5143'],
+    ['\u57FA\u7840\u8FD0\u7EF4\u8D39',p.baseOPEX+' \u4E07\u5143/\u5E74'],
+    ['\u5C45\u9876\u79DF\u91D1',p.rentEnabled?'\u542F\u7528':'\u672A\u542F\u7528'],
+    ['\u571F\u5730\u4F7F\u7528\u7A0E',p.landTaxEnabled?'\u542F\u7528':'\u672A\u542F\u7528'],
+    ['\u7BA1\u7406\u8D39',p.mgmtFeeEnabled?p.mgmtFeeAmount+' \u4E07\u5143/\u5E74':'\u672A\u542F\u7528'],
+    ['\u8D44\u672C\u91D1\u6BD4\u4F8B',(p.equityRatio*100).toFixed(0)+'%'],
+    ['\u8D37\u6B3E\u5229\u7387',(p.loanRate*100).toFixed(2)+'%'],
+    ['\u8D37\u6B3E\u5E74\u9650',p.loanYears+' \u5E74'],
+    ['\u8FD8\u6B3E\u65B9\u5F0F',rpm[p.repayMethod]],
+    ['\u6240\u5F97\u7A0E\u7387',(p.incomeTaxRate*100).toFixed(0)+'%'],
+    ['\u589E\u503C\u7A0E\u7387',(p.vatRate*100).toFixed(0)+'%'],
+    ['\u57CE\u5EFA\u7A0E\u53CA\u9644\u52A0',(p.surtaxRate*100).toFixed(1)+'%'],
+    ['\u62A4\u65E7',p.depYears+'\u5E74']
+  ];
+  var html='<thead><tr><th>\u53C2\u6570\u9879</th><th>\u6570\u503C</th></tr></thead><tbody>';
+  rows.forEach(function(r){html+='<tr><td class="label-cell">'+r[0]+'</td><td>'+r[1]+'</td></tr>';});
+  html+='</tbody>'; _('tblParams').innerHTML=html;
+}
+
+function renderSensitivity(sens) {
+  var vars=sens.variations,data=sens.data,names=sens.factorNames;
+  var html='<thead><tr><th>\u53D8\u52A8\u5E45\u5EA6</th>';
+  Object.keys(names).forEach(function(k){html+='<th class="num">'+names[k]+'</th>';}); html+='</tr></thead><tbody>';
+  vars.forEach(function(v){
+    var pct=(v*100).toFixed(0), lbl=(v===0)?'\u57FA\u51C6':(v>0?'+'+pct+'%':pct+'%');
+    html+='<tr><td class="label-cell"><strong>'+lbl+'</strong></td>';
+    Object.keys(names).forEach(function(k){html+='<td class="num">'+(data[k][v]!=null?fmtP(data[k][v]):'\u2013')+'</td>';});
+    html+='</tr>';
+  }); html+='</tbody>'; _('tblSensitivity').innerHTML=html; drawSensitivityChart(sens);
+}
+
+function drawSensitivityChart(sens) {
+  var cv=_('sensitivityChart'), ctx=cv.getContext('2d');
+  if(window._sc){try{window._sc.destroy();}catch(e){}}
+  var clrs=['#58a6ff','#3fb950','#f85149','#d29922'];
+  var labs=sens.variations.map(function(v){return(v===0)?'\u57FA\u51C6':(v*100).toFixed(0)+'%';});
+  var dss=[]; var ci=0;
+  Object.keys(sens.factorNames).forEach(function(k){
+    dss.push({label:sens.factorNames[k], data:sens.variations.map(function(v){return(sens.data[k][v]!=null)?sens.data[k][v]*100:null;}),
+      borderColor:clrs[ci], backgroundColor:clrs[ci]+'18', pointBackgroundColor:clrs[ci], pointBorderColor:'#fff',
+      pointRadius:4, tension:0.3, fill:false, lineWidth:2}); ci++;
+  });
+  window._sc=new Chart(ctx,{type:'line',data:{labels:labs,datasets:dss},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{color:'#8b949e',font:{size:11},usePointStyle:true,pointStyle:'circle',padding:16}},
+        tooltip:{backgroundColor:'#1c2128',titleColor:'#e6edf3',bodyColor:'#8b949e',borderColor:'rgba(255,255,255,0.1)',
+          callbacks:{label:function(c){return c.dataset.label+': '+c.parsed.y.toFixed(2)+'%';}}}},
+      scales:{x:{ticks:{color:'#6e7681',font:{size:11}},grid:{color:'rgba(255,255,255,0.03)'},title:{display:true,text:'\u53D8\u52A8\u5E45\u5EA6',color:'#8b949e'}},
+        y:{ticks:{color:'#6e7681',font:{size:11},callback:function(v){return v.toFixed(1)+'%';},grid:{color:'rgba(255,255,255,0.03)'},title:{display:true,text:'IRR (%)',color:'#8b949e'}}}}}});
+}
+
+function renderCashFlow(res) {
+  var html='<thead><tr><th>\u5E74</th><th class="num">\u53D1\u7535\u6536\u5165<br/>(\u4E07\u5143)</th><th class="num">OPEX<br/>(\u4E07)</th>'+
+    '<th class="num">\u589E\u503C\u7A0E<br/>\u51C0\u989D</th><th class="num">\u6240\u5F97\u7A0E<br/>(\u4E07)</th>'+
+    '<th class="num">CF\u5168\u6295<br>(\u7A0E\u524D)</th><th class="num">CF\u5168\u6295<br>(\u7A0E\u540E)</th>'+
+    '<th class="num">CF\u672C\u91D1<br>(\u7A0E\u524D)</th><th class="num">CF\u672C\u91D1<br>(\u7A0E\u540E)</th>'+
+    '<th class="num">\u7D2F\u8BA1NPV<br/>(\u7A0E\u540E)</th></tr></thead><tbody>';
+  var cnv=0,wv=res.wacc;
+  for(var i=0;i<res.years.length;i++){
+    var y=res.years[i]; cnv+=y.cfAT_total/Math.pow(wv,i);
+    var z=(i===0);
+    html+='<tr'+(z?' class="highlight-row"':'')+'>';
+    html+='<td class="label-cell">'+y.year+'</td>';
+    html+='<td class="num">'+(z?'\u2212':fmtN(y.grossRevenue))+'</td>';
+    html+='<td class="num">'+(z?'\u2212':fmtN(y.opex))+'</td>';
+    html+='<td class="num">'+(z?'\u2212':fmtN(y.vatNet))+'</td>';
+    html+='<td class="num">'+(z?'\u2212':fmtN(y.incomeTax))+'</td>';
+    html+='<td class="num">'+fmtN(y.cfPT_total)+'</td>';
+    html+='<td class="num">'+fmtN(y.cfAT_total)+'</td>';
+    html+='<td class="num">'+fmtN(y.cfPT_eq)+'</td>';
+    html+='<td class="num">'+fmtN(y.cfAT_eq)+'</td>';
+    html+='<td class="num">'+fmtN(cnv)+'</td></tr>';
+  } html+='</tbody>'; _('tblCashFlow').innerHTML=html;
+}
+
+function renderTaxSummary(res) {
+  var html='<thead><tr><th>\u5E74\u4EFD</th><th class="num">\u9500\u9879\u7A0E\u989D</th><th class="num">\u8FDB\u9879\u62B5\u6263</th><th class="num">\u5E94\u7EB3\u589E\u503C\u7A0E</th>'+
+    '<th class="num">\u5373\u5F81\u5373\u9000</th><th class="num">\u589E\u503C\u7A0E\u51C0\u989D</th><th class="num">\u57CE\u5EFA\u7A0E\u53CA\u9644\u52A0</th>'+
+    '<th class="num">\u6240\u5F97\u7A0E</th><th class="num">\u6709\u6548\u7A0E\u7387</th><th class="num">\u62A4\u65E7</th></tr></thead><tbody>';
+  for(var i=1;i<res.years.length;i++){
+    var y=res.years[i]; var er=y.itCoeff*100;
+    html+='<tr><td class="label-cell">\u7B2C'+y.year+'\u5E74'+(y.itCoeff<1?' \u2B50':'')+'</td>';
+    html+='<td class="num">'+fmtN(y.vatOutput)+'</td><td class="num">'+fmtN(y.vatInput)+'</td>';
+    html+='<td class="num">'+fmtN(y.vatPayable)+'</td><td class="num">'+fmtN(y.vatRebate)+'</td>';
+    html+='<td class="num">'+fmtN(y.vatNet)+'</td><td class="num">'+fmtN(y.surtax)+'</td>';
+    html+='<td class="num">'+fmtN(y.incomeTax)+'</td><td class="num">'+er.toFixed(1)+'%</td>';
+    html+='<td class="num">'+fmtN(y.dep)+'</td></tr>';
+  } html+='</tbody>'; _('tblTaxSummary').innerHTML=html;
+}
+
+// ============ Word 导出 ============
+function exportWord() {
+  if(!calcResults){alert('\u8BF7\u5148\u8FDB\u884C\u6D4B\u7B97\uFF01');return;}
+  var res=calcResults.raw, ind=calcResults.indicators;
+  var nd=new Date(); var ds=nd.getFullYear()+'-'+String(nd.getMonth()+1).padStart(2,'0')+'-'+String(nd.getDate()).padStart(2,'0');
+
+  var hc='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'+
+    '<head><meta charset="utf-8"><title>\u5149\u4FDF\u6295\u8D44\u6D4B\u7B97\u62A5\u544A</title>'+
+    '<style>body{font-family:\uFAED\u8F6F\u96C5\u9ED1,sans-serif;font-size:10.5pt;line-height:1.6;color:#333;}'+
+    'h1{font-size:18pt;text-align:center;margin:20pt 0;color:#1a5276;}h2{font-size:14pt;color:#1a5276;border-bottom:2px solid #1a5276;padding-bottom:4pt;margin-top:18pt;}'+
+    'h3{font-size:12pt;color:#2874a6;margin-top:12pt;}table{width:100%;border-collapse:collapse;margin:8pt 0;font-size:9.5pt;}'+
+    'th{background:#1a5276;color:#fff;padding:6pt 8pt;text-align:left;border:1px solid #ddd;}td{padding:5pt 8pt;border:1px solid #ddd;}'+
+    '.pos{color:green;font-weight:bold;}.neg{color:red;font-weight:bold;}.center{text-align:center;}.right{text-align:right;}'+
+    '.cover{text-align:center;padding:60pt 0;}.cover h1{font-size:24pt;}.disclaimer{font-size:9pt;color:#999;margin-top:30pt;border-top:1px solid #ccc;padding-top:10pt;}</style></head><body>';
+
+  hc+='<div class="cover"><h1>'+res.params.projectName+'</h1><h2>\u6295\u8D44\u6D4B\u7B97\u62A5\u544A</h2><p>\u751F\u6210\u65E5\u671F\uFF1A'+ds+'</p></div>';
+  hc+='<h2>\u4E00\u3001\u6838\u5FC3\u8D22\u52A1\u6307\u6807</h2>';
+  hc+='<h3>1.1 \u5168\u6295\u8D44\u6307\u6807</h3><table><tr><th>\u6307\u6807</th><th class="center">\u7A0E\u524D</th><th class="center">\u7A0E\u540E</th></tr>';
+  hc+='<tr><td>\u5168\u6295\u8D44 IRR</td><td class="center">'+((ind.irrPT_t!=null)?(ind.irrPT_t*100).toFixed(2)+'%':'\u2013')+'</td><td class="center">'+((ind.irrAT_t!=null)?(ind.irrAT_t*100).toFixed(2)+'%':'\u2013')+'</td></tr>';
+  hc+='<tr><td>\u5168\u6295\u8D44 NPV(\u4E07\u5143)</td><td class="center">'+((ind.npvPT_t!=null)?ind.npvPT_t.toFixed(2):'\u2013')+'</td><td class="center">'+((ind.npvAT_t!=null)?ind.npvAT_t.toFixed(2):'\u2013')+'</td></tr>';
+  hc+='<tr><td>\u52A8\u6001\u56DE\u6536\u671F(\u5E74)</td><td class="center">\u2014</td><td class="center">'+((ind.pbDT_t&&ind.pbDT_t<=res.N)?ind.pbDT_t.toFixed(1):'>'+res.N)+'</td></tr>';
+  hc+='<tr><td>\u76C8\u5229\u6307\u6570 PI</td><td class="center">'+((ind.piPT!=null)?ind.piPT.toFixed(3):'\u2013')+'</td><td class="center">'+((ind.piAT!=null)?ind.piAT.toFixed(3):'\u2013')+'</td></tr></table>';
+  hc+='<h3>1.2 \u8D44\u672C\u91D1\u6307\u6807</h3><table><tr><th>\u6307\u6807</th><th class="center">\u7A0E\u524D</th><th class="center">\u7A0E\u540E</th></tr>';
+  hc+='<tr><td>\u8D44\u672C\u91D1 IRR</td><td class="center">'+((ind.irrPT_e!=null)?(ind.irrPT_e*100).toFixed(2)+'%':'\u2013')+'</td><td class="center">'+((ind.irrAT_e!=null)?(ind.irrAT_e*100).toFixed(2)+'%':'\u2013')+'</td></tr>';
+  hc+='<tr><td>\u8D44\u672C\u91D1 NPV(\u4E07\u5143)</td><td class="center">'+((ind.npvPT_e!=null)?ind.npvPT_e.toFixed(2):'\u2013')+'</td><td class="center">'+((ind.npvAT_e!=null)?ind.npvAT_e.toFixed(2):'\u2013')+'</td></tr></table>';
+  hc+='<h3>1.3 \u5E73\u51C6\u5316\u6210\u672C</h3><p>LCOE = '+((ind.lcoe!=null)?ind.lcoe.toFixed(3):'\u2013')+' \u5143/kWh</p>';
+
+  hc+='<h2>\u4E8C\u3001\u9879\u76EE\u57FA\u7840\u53C2\u6570</h2><table><tr><th>\u53C2\u6570\u9879</th><th>\u6570\u503C</th></tr>';
+  var plist=[['\u9879\u76EE\u540D\u79F0',res.params.projectName],['\u88C5\u673A\u5BB9\u91CF',res.params.capacity+' MW'],
+    ['\u8FD0\u8425\u5E74\u9650',res.params.projectLife+' \u5E74'],['\u603B\u6295\u8D44',res.totalInvest.toFixed(2)+' \u4E07\u5143'],
+    ['\u8D44\u672C\u91D1\u6BD4\u4F8B',(res.params.equityRatio*100).toFixed(0)+'%'],
+    ['\u8D37\u6B3E\u5229\u7387',(res.params.loanRate*100).toFixed(2)+'%'],['\u8D37\u6B3E\u5E74\u9650',res.params.loanYears+' \u5E74'],
+    ['\u9996\u5E74\u5229\u7528\u5C0F\u65F6',res.params.firstYearHours+' h'],
+    ['\u5E74\u8870\u51CF\u7387',(res.params.degradationRate*100).toFixed(1)+'%']];
+  plist.forEach(function(r){hc+='<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>';}); hc+='</table>';
+
+  hc+='<h2>\u4E09\u3001\u654F\u611F\u6027\u5206\u6790\u6458\u8981</h2><table><tr><th>\u56E0\u7D20</th><th>-10%</th><th>-5%</th><th>\u57FA\u51C6</th><th>+5%</th><th>+10%</th></tr>';
+  var sf=['totalInvest','electricityPrice','utilHours','opex'];
+  var sn={totalInvest:'\u603B\u6295\u8D44',electricityPrice:'\u7535\u4EF7',utilHours:'\u5229\u7528\u5C0F\u65F6',opex:'\u8FD0\u8425\u6210\u672C'};
+  sf.forEach(function(k){hc+='<tr><td>'+sn[k]+'</td>';[-0.10,-0.05,0,0.05,0.10].forEach(function(v){hc+='<td class="center">'+((calcResults.sensitivity.data[k][v]!=null)?(calcResults.sensitivity.data[k][v]*100).toFixed(2)+'%':'\u2013')+'</td>';});hc+='</tr>';});hc+='</table>';
+
+  hc+='<h2>\u56DB\u3001\u5E74\u5EA6\u73B0\u91D1\u6D41\u660E\u7EC6</h2><table><tr><th>\u5E74</th><th>\u53D1\u7535\u6536\u5165</th><th>OPEX</th><th>\u589E\u503C\u7A0E</th><th>\u6240\u5F97\u7A0E</th><th>CF\u5168\u6295(\u7A0E\u540E)</th></tr>';
+  for(var qi=0;qi<=Math.min(5,res.N);qi++){var qy=res.years[qi];
+    hc+='<tr><td>'+qy.year+'</td><td class="right">'+((qi===0)?'\u2212':qy.grossRevenue.toFixed(2))+'</td>';
+    hc+='<td class="right">'+((qi===0)?'\u2212':qy.opex.toFixed(2))+'</td><td class="right">'+((qi===0)?'\u2212':qy.vatNet.toFixed(2))+'</td>';
+    hc+='<td class="right">'+((qi===0)?'\u2212':qy.incomeTax.toFixed(2))+'</td><td class="right">'+qy.cfAT_total.toFixed(2)+'</td></tr>';}
+  hc+='</table>';
+
+  hc+='<h2>\u4E94\u3001\u7A0E\u52A1\u5206\u6790</h2><table><tr><th>\u5E74</th><th>\u9500\u9879\u7A0E</th><th>\u8FDB\u9879\u62B5\u6263</th><th>\u5E94\u7EB3VAT</th><th>\u5373\u5F81\u5373\u9000</th><th>VAT\u51C0\u989D</th><th>\u6240\u5F97\u7A0E</th><th>\u6709\u6548\u7A0E\u7387</th></tr>';
+  for(var qj=1;qj<=Math.min(10,res.N);qj++){var qy2=res.years[qj];
+    hc+='<tr><td>\u7B2C'+qj+'\u5E74</td><td class="right">'+qy2.vatOutput.toFixed(2)+'</td><td class="right">'+qy2.vatInput.toFixed(2)+'</td>';
+    hc+='<td class="right">'+qy2.vatPayable.toFixed(2)+'</td><td class="right">'+qy2.vatRebate.toFixed(2)+'</td>';
+    hc+='<td class="right">'+qy2.vatNet.toFixed(2)+'</td><td class="right">'+qy2.incomeTax.toFixed(2)+'</td>';
+    hc+='<td class="right">'+(qy2.itCoeff*100).toFixed(1)+'%</td></tr>';} hc+='</table>';
+
+  hc+='<div class="disclaimer"><p><strong>\u514D\u8D23\u58F0\u660E\uFF1A</strong></p>'+
+    '<p>\u672C\u62A5\u544A\u7531\u5149\u4FDF\u6295\u8D44\u5206\u6790\u6D4B\u7B97\u6A21\u578B v7.4 \u81EA\u52A8\u751F\u6210\u3002</p>'+
+    '<p>\u751F\u6210\u65F6\u95F4\uFF1A'+ds+'</p></div></body></html>';
+
+  var blob=new Blob(['\ufeff'+hc],{type:'application/msword'});
+  var la=document.createElement('a'); la.href=URL.createObjectURL(blob);
+  la.download=res.params.projectName+'_\u6295\u8D44\u6D4B\u7B97\u62A5\u544A_'+ds+'.doc';
+  la.style.display='none'; document.body.appendChild(la); la.click();
+  setTimeout(function(){URL.revokeObjectURL(la.href);la.remove();},100);
+}
+
+// ============ 页面初始化 ============
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    // 绑定输入事件
+    bindInput('capacity', updateTotalInvestAuto);
+    bindInput('unitCost', updateTotalInvestAuto);
+    bindInput('costEquipment', updateCostTableTotal);
+    bindInput('costConstruction', updateCostTableTotal);
+    bindInput('costDesign', updateCostTableTotal);
+    bindInput('baseOPEX', updateOpexSummary);
+    bindInput('roofArea', updateOpexSummary);
+    bindInput('rentUnitPrice', updateOpexSummary);
+    bindInput('rentDiscountRate', updateOpexSummary);
+    bindInput('landArea', updateOpexSummary);
+    bindInput('landTaxRate', updateOpexSummary);
+    bindInput('mgmtFeeAmount', updateOpexSummary);
+
+    // 初始状态同步
+    syncGridModeUI();
+    syncInvestMode();
+    updateOpexFlex();
+    updateTotalInvestAuto();
+    updateCostTableTotal();
+
+    console.log('\u2705 PV Analyzer v7.4 initialized OK');
+  } catch(initErr) {
+    console.error('\u274C Init error:', initErr);
+  }
+});
+
+function bindInput(id, fn) {
+  var el = _(id);
+  if (el) el.addEventListener('input', fn);
+}
+</script>
+
+<!-- Chart.js CDN (only external dependency) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+</body>
+</html>

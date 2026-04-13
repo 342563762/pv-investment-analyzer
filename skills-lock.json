@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "skills": {
+    "agent-browser": {
+      "source": "vercel-labs/agent-browser",
+      "sourceType": "github",
+      "computedHash": "fc173a14ecea820739ea971bf81eddbf94e12ce99312fb83e55342724316c5dd"
+    },
+    "api-documenter": {
+      "source": "charon-fan/agent-playbook",
+      "sourceType": "github",
+      "computedHash": "9024e086834541c2bb80e02b533df545438742ccd17dbb97e6c1bd79173ca318"
+    },
+    "brainstorming": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "f483c304fcde060211ffae00f49bb728536e7e7613c99db45b5b924d9fc17243"
+    },
+    "code-reviewer": {
+      "source": "google-gemini/gemini-cli",
+      "sourceType": "github",
+      "computedHash": "270f0dd1d4c15a798bad5253a309cdc2056fe5322f99ba06ca22ce50581adc02"
+    },
+    "data-visualization": {
+      "source": "anthropics/knowledge-work-plugins",
+      "sourceType": "github",
+      "computedHash": "a238cd5981b2da6bd7ecc24cfb3d7238be993ee5a2ad97acb414f9758aba13dd"
+    },
+    "database-migrations-sql-migrations": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "f3cf2a0872b88198e78bc153f7d784c4f561b176c00a955bf9183a929700f64f"
+    },
+    "dcf-model": {
+      "source": "anthropics/financial-services-plugins",
+      "sourceType": "github",
+      "computedHash": "985d59f28d3f6214ccd8de9255d52fe8640bedbf21bd02dd1aa8be713f3d7918"
+    },
+    "dcf-valuation": {
+      "source": "claude-office-skills/skills",
+      "sourceType": "github",
+      "computedHash": "70bc32c6ad259a9ab4b0dec8f885cad24c350b052dad1223492a65e7a61a3750"
+    },
+    "debugging": {
+      "source": "tursodatabase/turso",
+      "sourceType": "github",
+      "computedHash": "299d698a452e7b35ef7375127fd5b76f4cf50a24a99ac8bd8dab1b1ef5437ce6"
+    },
+    "devops-deploy": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "7aa39920ad2e33d6fb0378fc680c3f6ca8016afcffe6d17c55d572102245f0f2"
+    },
+    "git-commit-workflow": {
+      "source": "laurigates/claude-plugins",
+      "sourceType": "github",
+      "computedHash": "13427999dee695d10887ea2b96dcc1850100b3c43d87eff819befcb3a9a69793"
+    },
+    "investment-memo": {
+      "source": "claude-office-skills/skills",
+      "sourceType": "github",
+      "computedHash": "f1752f58cce10ccddffa3c249c7f3b0bf189fc4c0bbc3ab306106894664d4c6a"
+    },
+    "last30days": {
+      "source": "mvanhorn/last30days-skill",
+      "sourceType": "github",
+      "computedHash": "d04e24c86cafd9fb4e8117b1b995f138a98cd627bca09286cc4e81cdef771843"
+    },
+    "last30days-cn": {
+      "source": "Jesseovo/last30days-skill-cn",
+      "sourceType": "github",
+      "computedHash": "d3ce2bc8a330933da13282ea929c63304d09f8c92fd97fe594874c05c6b1df95"
+    },
+    "meeting-notes": {
+      "source": "claude-office-skills/skills",
+      "sourceType": "github",
+      "computedHash": "6006c3253877d32e1ca500f6c6f901e294778f06547ddc8db7f6ce859a19eff9"
+    },
+    "office-productivity": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "computedHash": "43bd0125e17079e9d55d237cd824853d0dd9634e1cdd68a9e6043aaa20c315b4"
+    },
+    "python-performance-optimization": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "6390615b25e5922057b15eb900d69a90db563c5f2d6bd3182be707592fc25f09"
+    },
+    "security-scan": {
+      "source": "jwynia/agent-skills",
+      "sourceType": "github",
+      "computedHash": "5b04e93d6ad30e1ada0da46d9fa63b55ff6b9d7873fc22e2a06f5064ad6285c9"
+    },
+    "startup-financial-modeling": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "7004ba3e00abe53b7c667d94630117813a7b5923e661c27a99251136fefbde8a"
+    },
+    "testing-patterns": {
+      "source": "yonatangross/orchestkit",
+      "sourceType": "github",
+      "computedHash": "fa15f4af408a84c9cd6d3487ee5aca1541ee25ee4455f1663e4575c7e8d6bb86"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "43ca6c197f8ec13055079da7053232d477068b03ca443f9ac1bc819b95cdd432"
+    },
+    "web-component-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "324d0ef35018b21b37e4d7b07336894824527e06b3a8bfa0496a0c5648c626c4"
+    }
+  }
+}

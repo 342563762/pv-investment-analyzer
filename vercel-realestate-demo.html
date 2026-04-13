@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>云境 · 天玺 | 城市天际线之上的生活艺术</title>
+<style>
+/* ===== Vercel Design System — Real Estate Landing Page ===== */
+
+/* Reset & Base */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  /* Colors */
+  --black: #171717;
+  --white: #ffffff;
+  --gray-900: #171717;
+  --gray-600: #4d4d4d;
+  --gray-500: #666666;
+  --gray-400: #808080;
+  --gray-100: #ebebeb;
+  --gray-50: #fafafa;
+  
+  /* Accent */
+  --ship-red: #ff5b4f;
+  --preview-pink: #de1d8d;
+  --develop-blue: #0a72ef;
+  --link-blue: #0072f5;
+  --focus-blue: hsla(212, 100%, 48%, 1);
+  --console-blue: #0070f3;
+  --console-purple: #7928ca;
+  
+  /* Badge */
+  --badge-bg: #ebf5ff;
+  --badge-text: #0068d6;
+
+  /* Shadows */
+  --shadow-border: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+  --shadow-subtle: rgba(0, 0, 0, 0.04) 0px 2px 2px;
+  --shadow-card: rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, rgba(0,0,0,0.04) 0px 8px 8px -8px, #fafafa 0px 0px 0px 1px;
+  --shadow-ring: rgb(235, 235, 235) 0px 0px 0px 1px;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  color: var(--black);
+  background: var(--white);
+  line-height: 1.56;
+  font-weight: 400;
+  font-size: 18px;
+  overflow-x: hidden;
+}
+
+/* Typography — Vercel Hierarchy */
+.display-hero {
+  font-size: clamp(36px, 5vw, 72px);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -2.88px;
+  color: var(--black);
+}
+.section-heading {
+  font-size: clamp(28px, 3vw, 40px);
+  font-weight: 600;
+  line-height: 1.20;
+  letter-spacing: -2.4px;
+  color: var(--black);
+}
+.subheading-lg {
+  font-size: clamp(22px, 2vw, 32px);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -1.28px;
+  color: var(--black);
+}
+.card-title {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.33;
+  letter-spacing: -0.96px;
+  color: var(--black);
+}
+.body-lg {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.80;
+  color: var(--gray-600);
+}
+.body {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.56;
+  color: var(--gray-600);
+}
+.body-sm {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.50;
+  color: var(--gray-600);
+}
+.btn-text {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.43;
+}
+.caption {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.33;
+  color: var(--gray-500);
+  letter-spacing: 0.02em;
+}
+.mono {
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, 'Roboto Mono', Menlo, monospace;
+}
+.mono-body {
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, 'Roboto Mono', Menlo, monospace;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.50;
+}
+
+/* Navigation — Sticky, shadow-border bottom */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  box-shadow: var(--shadow-border);
+}
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-logo {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  color: var(--black);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-logo-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--black);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.nav-links a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-600);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.nav-links a:hover { color: var(--black); }
+.nav-links a.active { color: var(--black); font-weight: 600; }
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 18px;
+  background: var(--black);
+  color: var(--white);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.nav-cta:hover { opacity: 0.85; transform: translateY(-1px); }
+
+/* Hero Section */
+.hero {
+  position: relative;
+  padding: 100px 24px 120px;
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  right: -200px;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(10,114,239,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -150px;
+  left: -100px;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(222,29,141,0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--badge-bg);
+  color: var(--badge-text);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
+}
+.hero-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--develop-blue);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.hero-title {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 28px;
+  max-width: 800px;
+}
+.hero-title .highlight {
+  background: linear-gradient(135deg, var(--ship-red), var(--preview-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-desc {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  margin-bottom: 40px;
+}
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: var(--black);
+  color: var(--white);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-card);
+}
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: var(--white);
+  color: var(--black);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-border);
+  border: none;
+  cursor: pointer;
+}
+.btn-ghost:hover {
+  background: var(--gray-50);
+  box-shadow: var(--shadow-card);
+}
+
+/* Hero Image Area */
+.hero-visual {
+  position: relative;
+  margin-top: 60px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  z-index: 1;
+  aspect-ratio: 21/9;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 30%, #dee2e6 60%, #f1f3f5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hero-visual-placeholder {
+  text-align: center;
+  color: var(--gray-400);
+}
+.hero-visual-placeholder .building-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+/* Stats / Metrics Bar */
+.stats-bar {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 32px;
+}
+.stat-item {
+  text-align: left;
+}
+.stat-number {
+  font-size: 42px;
+  font-weight: 600;
+  letter-spacing: -1.5px;
+  color: var(--black);
+  line-height: 1.1;
+}
+.stat-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-500);
+  margin-top: 6px;
+}
+.stat-unit {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--gray-400);
+}
+
+/* Divider */
+.section-divider {
+  max-width: 1200px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+/* Feature Cards Grid */
+.features-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 24px 120px;
+}
+.section-header {
+  margin-bottom: 64px;
+}
+.section-overline {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--console-blue);
+  margin-bottom: 16px;
+}
+.section-header .section-heading {
+  margin-bottom: 16px;
+}
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.feature-card {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 32px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  cursor: default;
+}
+.feature-card:hover {
+  box-shadow: rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.06) 0px 4px 8px, rgba(0,0,0,0.04) 0px 12px 24px -8px, #fafafa 0px 0px 0px 1px;
+  transform: translateY(-2px);
+}
+.feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+  background: var(--gray-50);
+}
+.feature-card .card-title {
+  margin-bottom: 10px;
+}
+.feature-card p {
+  font-size: 15px;
+  line-height: 1.58;
+  color: var(--gray-600);
+}
+
+/* Workflow Pipeline — Vercel Signature Component */
+.pipeline-section {
+  background: var(--gray-50);
+  padding: 100px 24px;
+}
+.pipeline-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+.pipeline-inner .section-heading { margin-bottom: 16px; }
+.pipeline-inner .body-lg { max-width: 560px; margin: 0 auto 64px; }
+.pipeline-steps {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+}
+.pipeline-step {
+  flex: 1;
+  max-width: 300px;
+  padding: 0 24px;
+  position: relative;
+}
+.step-number {
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.step-num-develop { color: var(--develop-blue); }
+.step-num-preview { color: var(--preview-pink); }
+.step-num-ship { color: var(--ship-red); }
+.pipeline-step h3 {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+.pipeline-step p {
+  font-size: 15px;
+  color: var(--gray-600);
+  line-height: 1.55;
+}
+.pipeline-connector {
+  display: flex;
+  align-items: center;
+  padding-top: 52px;
+  flex-shrink: 0;
+}
+.pipeline-line {
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(to right, var(--gray-200), var(--gray-300));
+}
+.pipeline-arrow {
+  color: var(--gray-300);
+  font-size: 14px;
+}
+
+/* Property Gallery */
+.gallery-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 24px 120px;
+}
+.gallery-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 280px 280px;
+  gap: 16px;
+  margin-top: 48px;
+}
+.gallery-item {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-ring);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+.gallery-item:hover { transform: scale(1.01); }
+.gallery-item.main { grid-row: span 2; background: linear-gradient(160deg, #e8ecf1, #c9d1db); }
+.gallery-item.tl { background: linear-gradient(135deg, #f0ece2, #ddd6cc); }
+.gallery-item.tr { background: linear-gradient(135deg, #e2ebe8, #cdded8); }
+.gallery-item.bl { background: linear-gradient(145deg, #eee6ea, #dcccd4); }
+.gallery-label {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(23,23,23,0.75);
+  backdrop-filter: blur(8px);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Floor Plans Section */
+.plans-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px 24px 100px;
+}
+.plan-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+.plan-tab {
+  padding: 8px 20px;
+  border-radius: 9999px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-600);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-border);
+}
+.plan-tab:hover { color: var(--black); }
+.plan-tab.active {
+  background: var(--black);
+  color: var(--white);
+  box-shadow: none;
+}
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.plan-card {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 36px;
+  box-shadow: var(--shadow-border);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.plan-card.featured {
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--black);
+}
+.plan-card.featured::before {
+  content: '热门';
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--black);
+  color: var(--white);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+}
+.plan-type {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--console-purple);
+  margin-bottom: 8px;
+}
+.plan-name {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.8px;
+  margin-bottom: 6px;
+}
+.plan-area {
+  font-size: 14px;
+  color: var(--gray-500);
+  margin-bottom: 24px;
+}
+.plan-specs {
+  list-style: none;
+  margin-bottom: 28px;
+}
+.plan-specs li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: 14px;
+}
+.plan-specs li:last-child { border-bottom: none; }
+.spec-key { color: var(--gray-500); }
+.spec-val { color: var(--black); font-weight: 500; }
+.plan-price {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -1.2px;
+  color: var(--black);
+  margin-bottom: 20px;
+}
+.plan-price .unit {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--gray-400);
+}
+.plan-btn {
+  width: 100%;
+  padding: 10px;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.plan-btn:hover { opacity: 0.85; }
+
+/* CTA Section */
+.cta-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 24px;
+  position: relative;
+  overflow: hidden;
+}
+.cta-box {
+  background: var(--black);
+  border-radius: 16px;
+  padding: 80px 56px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.cta-box::before {
+  content: '';
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(255,91,79,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cta-box::after {
+  content: '';
+  position: absolute;
+  bottom: -80px;
+  left: -80px;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(10,114,239,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cta-box .display-hero {
+  color: var(--white);
+  letter-spacing: -2.4px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+}
+.cta-box .body-lg {
+  color: rgba(255,255,255,0.65);
+  max-width: 480px;
+  margin: 0 auto 36px;
+  position: relative;
+  z-index: 1;
+}
+.cta-form-row {
+  display: flex;
+  gap: 12px;
+  max-width: 420px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.cta-input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.07);
+  color: white;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.cta-input::placeholder { color: rgba(255,255,255,0.35); }
+.cta-input:focus { border-color: rgba(255,255,255,0.4); }
+.cta-submit {
+  padding: 12px 24px;
+  background: var(--white);
+  color: var(--black);
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  white-space: nowrap;
+}
+.cta-submit:hover { opacity: 0.9; }
+
+/* Footer */
+.footer {
+  border-top: 1px solid var(--gray-100);
+  padding: 64px 24px 40px;
+}
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+  gap: 48px;
+}
+.footer-brand {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin-bottom: 12px;
+}
+.footer-brand-desc {
+  font-size: 14px;
+  color: var(--gray-500);
+  line-height: 1.55;
+}
+.footer-col h4 {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--black);
+  margin-bottom: 16px;
+}
+.footer-col a {
+  display: block;
+  font-size: 14px;
+  color: var(--gray-500);
+  text-decoration: none;
+  margin-bottom: 10px;
+  transition: color 0.15s ease;
+}
+.footer-col a:hover { color: var(--black); }
+.footer-bottom {
+  max-width: 1200px;
+  margin: 48px auto 0;
+  padding-top: 24px;
+  border-top: 1px solid var(--gray-100);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-copyright {
+  font-size: 13px;
+  color: var(--gray-400);
+}
+.footer-legal a {
+  font-size: 13px;
+  color: var(--gray-400);
+  text-decoration: none;
+  margin-left: 24px;
+  transition: color 0.15s ease;
+}
+.footer-legal a:hover { color: var(--gray-600); }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .feature-grid { grid-template-columns: repeat(2, 1fr); }
+  .plans-grid { grid-template-columns: repeat(2, 1fr); }
+  .gallery-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; }
+  .gallery-item.main { grid-row: span 1; }
+  .footer-inner { grid-template-columns: 1fr 1fr; }
+  .pipeline-steps { flex-direction: column; gap: 32px; }
+  .pipeline-connector { display: none; }
+}
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .hero { padding: 64px 20px 80px; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .plans-grid { grid-template-columns: 1fr; }
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+  .cta-box { padding: 56px 24px; }
+  .footer-inner { grid-template-columns: 1fr; gap: 32px; }
+  .hero-actions { flex-direction: column; }
+  .cta-form-row { flex-direction: column; }
+  .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+  .gallery-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <span class="nav-logo-icon">雲</span>
+      云境·天玺
+    </a>
+    <div class="nav-links">
+      <a href="#features">项目亮点</a>
+      <a href="#gallery">实景图</a>
+      <a href="#plans">户型鉴赏</a>
+      <a href="#" class="active">预约看房</a>
+    </div>
+    <a href="#cta" class="nav-cta">预约参观 →</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    2026 年度 · 城市地标作品
+  </div>
+  <h1 class="hero-title display-hero">
+    在城市天际线上<br><span class="highlight">重新定义居住高度</span>
+  </h1>
+  <p class="hero-desc body-lg">
+    云境·天玺 — CBD 核心区最后一块低密住区。280米云端视野，
+    将整座城市的繁华与宁静同时收入窗景。
+  </p>
+  <div class="hero-actions">
+    <a href="#plans" class="btn-primary">查看户型方案 →</a>
+    <a href="#gallery" class="btn-ghost">观看实景视频</a>
+  </div>
+
+  <!-- Hero Visual Placeholder -->
+  <div class="hero-visual">
+    <div class="hero-visual-placeholder">
+      <div class="building-icon">🏙️</div>
+      <p class="caption mono">云端天际线效果图 · 实际效果以交付为准</p>
+    </div>
+    <div class="gallery-label" style="bottom:auto;top:16px;left:auto;right:16px;background:none;color:#666;font-size:12px;border:1px solid #ebebeb;">渲染图 · 非最终交付标准</div>
+  </div>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-number">280<span class="stat-unit">m</span></div>
+    <div class="stat-label">建筑总高 · 城市新地标</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-number">3.2<span class="stat-unit">万/㎡</span></div>
+    <div class="stat-label">起价 · 精装交付</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-number">89%</div>
+    <div class="stat-label">绿化覆盖率</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-number">4.8<span class="stat-unit">m</span></div>
+    <div class="stat-label">极致层高 · 豪华尺度</div>
+  </div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- Features -->
+<section class="features-section" id="features">
+  <div class="section-header">
+    <div class="section-overline mono">Core Features</div>
+    <h2 class="section-heading">不只是房子<br>是一种生活方式的宣言</h2>
+    <p class="body-lg" style="max-width:540px;margin-top:16px;">
+      每一处细节都经过反复推敲。从入户大堂到顶层会所，
+      从景观视野到智能系统——我们重新定义了「家」的标准。
+    </p>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🏗️</div>
+      <h3 class="card-title">云端建筑美学</h3>
+      <p>由国际大师团队操刀设计，流线型玻璃幕墙立面，夜间呈现城市最耀眼的天际线剪影。每一层都是风景。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🌿</div>
+      <h3 class="card-title">垂直森林社区</h3>
+      <p>每三层设置空中花园露台，引入 47 种珍稀植物物种。
+      在 200 米高空拥有一片私人森林。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3 class="card-title">全屋智能生态</h3>
+      <p>AIoT 全场景智能系统，从温控、照明到安防、能耗管理，
+      一个 App 统管全屋。支持语音/手机/面板三端联动控制。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛋️</div>
+      <h3 class="card-title">顶奢精装标准</h3>
+      <p>德国 Gaggenau 厨电套装、意大利 Poliform 定制柜体、
+      日本 TOTO 智能卫浴系统。全球顶级品牌矩阵，无需二次装修。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🚇</div>
+      <h3 class="card-title">双地铁上盖物业</h3>
+      <p>地铁 1 号线 & 12 号线换乘站零距离接驳，
+      直达机场/高铁站仅需 25 分钟。城市核心交通枢纽级地段。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎭</div>
+      <h3 class="card-title">业主专属配套</h3>
+      <p>2500㎡ 顶层无边泳池、私人影院厅、红酒雪茄吧、
+      24 小时管家服务中心、儿童探索乐园——为少数人定制。</p>
+    </div>
+  </div>
+</section>
+
+<!-- Pipeline — Vercel Workflow Style -->
+<section class="pipeline-section">
+  <div class="pipeline-inner">
+    <div class="section-overline mono" style="color:var(--gray-500)">The Journey</div>
+    <h2 class="section-heading">从心动到入住<br>只需四步</h2>
+    <p class="body-lg">简洁透明的购房流程，没有隐藏环节，全程专人陪同服务。</p>
+    <div class="pipeline-steps">
+      <div class="pipeline-step">
+        <div class="step-number step-num-develop">01 / 预约</div>
+        <h3 style="color:var(--develop-blue)">在线预约看房</h3>
+        <p>选择您方便的时间，专属顾问一对一接待，提供 VR 全景预览与实体样板间体验。</p>
+      </div>
+      <div class="pipeline-connector"><div class="pipeline-line"></div><span class="pipeline-arrow">→</span></div>
+      <div class="pipeline-step">
+        <div class="step-number step-num-preview">02 / 选择</div>
+        <h3 style="color:var(--preview-pink)">选定心仪户型</h3>
+        <p>6 种面积段、12 种户型方案可选。金融顾问协助制定最优付款与贷款方案。</p>
+      </div>
+      <div class="pipeline-connector"><div class="pipeline-line"></div><span class="pipeline-arrow">→</span></div>
+      <div class="pipeline-step">
+        <div class="step-number step-num-ship">03 / 入住</div>
+        <h3 style="color:var(--ship-red)">签约即享权益</h3>
+        <p>签订认购协议后立即激活业主权益包：物业管理费减免、车位优先选择权等。</p>
+      </div>
+      <div class="pipeline-connector"><div class="pipeline-line"></div><span class="pipeline-arrow">→</span></div>
+      <div class="pipeline-step">
+        <div class="step-number step-num-ship">04 / 交付</div>
+        <h3 style="color:var(--ship-red)">精装交付</h3>
+        <p>2027 年 Q4 交房，拎包即住。交付前三次验房，确保每个细节完美无瑕。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Gallery -->
+<section class="gallery-section" id="gallery">
+  <div class="section-header">
+    <div class="section-overline mono">Gallery</div>
+    <h2 class="section-heading">所见即所得</h2>
+    <p class="body-lg" style="max-width:480px;margin-top:16px;">
+      实景拍摄 + 渲染效果图，每一个角度都值得驻足。
+    </p>
+  </div>
+  <div class="gallery-grid">
+    <div class="gallery-item main">
+      <span style="font-size:48px;opacity:0.2;">🌆</span>
+      <span class="gallery-label">主楼外观 · 日景</span>
+    </div>
+    <div class="gallery-item tl">
+      <span style="font-size:36px;opacity:0.2;">🛋️</span>
+      <span class="gallery-label">A 户型客厅</span>
+    </div>
+    <div class="gallery-item tr">
+      <span style="font-size:36px;opacity:0.2;">🍽️</span>
+      <span class="gallery-label">B 户型餐厨</span>
+    </div>
+    <div class="gallery-item bl">
+      <span style="font-size:36px;opacity:0.2;">🏊</span>
+      <span class="gallery-label">顶层无边泳池</span>
+    </div>
+  </div>
+</section>
+
+<!-- Floor Plans -->
+<section class="plans-section" id="plans">
+  <div class="section-header">
+    <div class="section-overline mono">Floor Plans</div>
+    <h2 class="section-heading">六种人生尺度<br>一种品质标准</h2>
+  </div>
+  <div class="plan-tabs">
+    <button class="plan-tab active">全部户型</button>
+    <button class="plan-tab">三居室</button>
+    <button class="plan-tab">四居室</button>
+    <button class="plan-tab">大平层</button>
+  </div>
+  <div class="plans-grid">
+    <!-- Plan A -->
+    <div class="plan-card featured">
+      <div class="plan-type">A 型 · 三居</div>
+      <div class="plan-name">云境·悦</div>
+      <div class="plan-area">建筑面积约 128㎡ | 3室2厅2卫</div>
+      <ul class="plan-specs">
+        <li><span class="spec-key">朝向</span><span class="spec-val">南北通透</span></li>
+        <li><span class="spec-key">阳台</span><span class="spec-val">双阳台 12㎡</span></li>
+        <li><span class="spec-key">层高</span><span class="spec-val">3.15m</span></li>
+        <li><span class="spec-key">得房率</span><span class="spec-val">82%</span></li>
+      </ul>
+      <div class="plan-price">456<span class="unit">万起</span></div>
+      <button class="plan-btn">预约看房</button>
+    </div>
+    <!-- Plan B -->
+    <div class="plan-card">
+      <div class="plan-type">B 型 · 四居</div>
+      <div class="plan-name">云境·臻</div>
+      <div class="plan-area">建筑面积约 156㎡ | 4室2厅2卫</div>
+      <ul class="plan-specs">
+        <li><span class="spec-key">朝向</span><span class="spec-val">南向三开间</span></li>
+        <li><span class="spec-key">阳台</span><span class="spec-val">L型转角阳台 18㎡</span></li>
+        <li><span class="spec-key">层高</span><span class="spec-val">3.3m</span></li>
+        <li><span class="spec-key">得房率</span><span class="spec-val">81%</span></li>
+      </ul>
+      <div class="plan-price">598<span class="unit">万起</span></div>
+      <button class="plan-btn">预约看房</button>
+    </div>
+    <!-- Plan C -->
+    <div class="plan-card">
+      <div class="plan-type">C 型 · 大平层</div>
+      <div class="plan-name">云境·玺</div>
+      <div class="plan-area">建筑面积约 238㎡ | 4室3厅3卫</div>
+      <ul class="plan-specs">
+        <li><span class="spec-key">朝向</span><span class="spec-val">270°环幕视野</span></li>
+        <li><span class="spec-key">阳台</span><span class="spec-val">超大观景台 35㎡</span></li>
+        <li><span class="spec-key">层高</span><span class="spec-val">3.6m（局部4.2m）</span></li>
+        <li><span class="spec-key">得房率</span><span class="spec-val">79%</span></li>
+      </ul>
+      <div class="plan-price">980<span class="unit">万起</span></div>
+      <button class="plan-btn">预约看房</button>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <div class="cta-box">
+    <h2 class="display-hero">让每一次回家<br>都成为一次归心之旅</h2>
+    <p class="body-lg">
+      留下您的联系方式，我们的专属置业顾问将在 24 小时内与您联系，
+      为您安排 VIP 看房体验。
+    </p>
+    <form class="cta-form-row" onsubmit="event.preventDefault();alert('感谢您的关注！我们会尽快联系您。');">
+      <input type="tel" class="cta-input" placeholder="输入您的手机号码">
+      <button type="submit" class="cta-submit">立即预约</button>
+    </form>
+    <p style="margin-top:16px;font-size:12px;color:rgba(255,255,255,0.3);position:relative;z-index:1;">
+      已有 2,847 位客户完成预约 · 本月剩余 VIP 名额仅 38 个
+    </p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand">云境·天玺</div>
+      <p class="footer-brand-desc">城市核心区 · 云端生活地标<br>重新定义中国高端住宅标准</p>
+    </div>
+    <div class="footer-col">
+      <h4>项目信息</h4>
+      <a href="#">项目概况</a>
+      <a href="#">区位优势</a>
+      <a href="#">交通配套</a>
+      <a href="#">周边学校</a>
+    </div>
+    <div class="footer-col">
+      <h4>户型产品</h4>
+      <a href="#">A 型 · 云境悦</a>
+      <a href="#">B 型 · 云境臻</a>
+      <a href="#">C 型 · 云境玺</a>
+      <a href="#">户型对比</a>
+    </div>
+    <div class="footer-col">
+      <h4>服务支持</h4>
+      <a href="#">预约看房</a>
+      <a href="#">VR 看房</a>
+      <a href="#">贷款计算器</a>
+      <a href="#">常见问题</a>
+    </div>
+    <div class="footer-col">
+      <h4>联系我们</h4>
+      <a href="#">400-888-6688</a>
+      <a href="#">sales@yunjing.com</a>
+      <a href="#">售楼处地址</a>
+      <a href="#">在线客服</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copyright">
+      © 2026 云境房地产开发有限公司 · 沪ICP备XXXXXXXX号
+    </div>
+    <div class="footer-legal">
+      <a href="#">隐私政策</a>
+      <a href="#">使用条款</a>
+      <a href="#">备案公示</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Tab switching for plan tabs
+document.querySelectorAll('.plan-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.plan-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+  });
+});
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+
+</body>
+</html>
